@@ -16,7 +16,7 @@ sourceDir("helpFunctions")
 proportionTrainingInstances = 0.1
 proportionRuntimeInstances=0.8
 proportionVerificationInstances = 0.1
-mlrLearnerConstant = getRandomForestLearnerJackknife()
+mlrLearnerConstant = getRandomForestLearner()
 nrOfStepsWithoutRetraining = 10
 keepOldRegressionTasks = FALSE
 solvedInstancesOnly = FALSE
@@ -38,13 +38,17 @@ onlineLearnerData = initialiseOnlineLearnerData(onlineScenario = onlineScenarioT
 instance = onlineLearnerData$onlineScenario$consideredInstances[1]
 availableAlgorithms = onlineLearnerData$onlineScenario$consideredAlgorithms
 desiredFeatures = onlineLearnerData$onlineScenario$consideredFeatures 
-
+availableInstances = onlineLearnerData$onlineScenario$consideredInstances
+timeHorizon = length(availableInstances)
 
 featureValues = getFeatureValuesForInstList(instance, desiredFeatures, onlineLearnerData$onlineScenario$aslibScenario)
 
-for(instance in onlineLearnerData$onlineScenario$consideredInstances){
+allRequiredDataStructures$AMatrix
+
+
+for(instance in availableInstances){
   print(paste("handling instance", instance))
-  features = getFeatureValuesForInstList(instance)
-  print(features)
+  featureValues = getFeatureValuesForInstList(instance, desiredFeatures,onlineLearnerData$onlineScenario$aslibScenario)
+
 }        
 
