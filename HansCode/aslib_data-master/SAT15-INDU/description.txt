@@ -1,0 +1,212 @@
+algorithm_cutoff_memory: '?'
+algorithm_cutoff_time: 3600.0
+default_steps:
+- ALL
+feature_steps:
+  ALL:
+    provides:
+    - nvarsOrig
+    - nclausesOrig
+    - nvars
+    - nclauses
+    - reducedVars
+    - reducedClauses
+    - Pre-featuretime
+    - vars-clauses-ratio
+    - POSNEG-RATIO-CLAUSE-mean
+    - POSNEG-RATIO-CLAUSE-coeff-variation
+    - POSNEG-RATIO-CLAUSE-min
+    - POSNEG-RATIO-CLAUSE-max
+    - POSNEG-RATIO-CLAUSE-entropy
+    - VCG-CLAUSE-mean
+    - VCG-CLAUSE-coeff-variation
+    - VCG-CLAUSE-min
+    - VCG-CLAUSE-max
+    - VCG-CLAUSE-entropy
+    - UNARY
+    - BINARY+
+    - TRINARY+
+    - Basic-featuretime
+    - VCG-VAR-mean
+    - VCG-VAR-coeff-variation
+    - VCG-VAR-min
+    - VCG-VAR-max
+    - VCG-VAR-entropy
+    - POSNEG-RATIO-VAR-mean
+    - POSNEG-RATIO-VAR-stdev
+    - POSNEG-RATIO-VAR-min
+    - POSNEG-RATIO-VAR-max
+    - POSNEG-RATIO-VAR-entropy
+    - HORNY-VAR-mean
+    - HORNY-VAR-coeff-variation
+    - HORNY-VAR-min
+    - HORNY-VAR-max
+    - HORNY-VAR-entropy
+    - horn-clauses-fraction
+    - VG-mean
+    - VG-coeff-variation
+    - VG-min
+    - VG-max
+    - KLB-featuretime
+    - CG-mean
+    - CG-coeff-variation
+    - CG-min
+    - CG-max
+    - CG-entropy
+    - cluster-coeff-mean
+    - cluster-coeff-coeff-variation
+    - cluster-coeff-min
+    - cluster-coeff-max
+    - cluster-coeff-entropy
+    - CG-featuretime
+features_cutoff_memory: '?'
+features_cutoff_time: '60'
+features_deterministic:
+- nvarsOrig
+- nclausesOrig
+- nvars
+- nclauses
+- reducedVars
+- reducedClauses
+- Pre-featuretime
+- vars-clauses-ratio
+- POSNEG-RATIO-CLAUSE-mean
+- POSNEG-RATIO-CLAUSE-coeff-variation
+- POSNEG-RATIO-CLAUSE-min
+- POSNEG-RATIO-CLAUSE-max
+- POSNEG-RATIO-CLAUSE-entropy
+- VCG-CLAUSE-mean
+- VCG-CLAUSE-coeff-variation
+- VCG-CLAUSE-min
+- VCG-CLAUSE-max
+- VCG-CLAUSE-entropy
+- UNARY
+- BINARY+
+- TRINARY+
+- Basic-featuretime
+- VCG-VAR-mean
+- VCG-VAR-coeff-variation
+- VCG-VAR-min
+- VCG-VAR-max
+- VCG-VAR-entropy
+- POSNEG-RATIO-VAR-mean
+- POSNEG-RATIO-VAR-stdev
+- POSNEG-RATIO-VAR-min
+- POSNEG-RATIO-VAR-max
+- POSNEG-RATIO-VAR-entropy
+- HORNY-VAR-mean
+- HORNY-VAR-coeff-variation
+- HORNY-VAR-min
+- HORNY-VAR-max
+- HORNY-VAR-entropy
+- horn-clauses-fraction
+- VG-mean
+- VG-coeff-variation
+- VG-min
+- VG-max
+- KLB-featuretime
+- CG-mean
+- CG-coeff-variation
+- CG-min
+- CG-max
+- CG-entropy
+- cluster-coeff-mean
+- cluster-coeff-coeff-variation
+- cluster-coeff-min
+- cluster-coeff-max
+- cluster-coeff-entropy
+- CG-featuretime
+features_stochastic: ''
+maximize:
+- false
+metainfo_algorithms:
+  ADS-cryptominisat:
+    configuration: ''
+    deterministic: true
+  ADS-cryptominisat-autotune:
+    configuration: ''
+    deterministic: true
+  ADS-dccaSatToRiss:
+    configuration: ''
+    deterministic: true
+  ADS-glucose-adapt:
+    configuration: ''
+    deterministic: true
+  ADS-glucose-community-switching:
+    configuration: ''
+    deterministic: true
+  BreakIDGlucose2:
+    configuration: ''
+    deterministic: true
+  CCAglucose2015:
+    configuration: ''
+    deterministic: true
+  COMiniSatPS_Main_Sequence:
+    configuration: ''
+    deterministic: true
+  COMiniSatPS_Subdwarf:
+    configuration: ''
+    deterministic: true
+  Glucose_nbSat:
+    configuration: ''
+    deterministic: true
+  Glucose_nbSatRsltn:
+    configuration: ''
+    deterministic: true
+  GlueMiniSat_2.2.10:
+    configuration: ''
+    deterministic: true
+  GlueMiniSat_2.2.10-5:
+    configuration: ''
+    deterministic: true
+  Lingeling_sr15bal:
+    configuration: ''
+    deterministic: true
+  Lingeling_sr15baq:
+    configuration: ''
+    deterministic: true
+  Nigma-1.2.86:
+    configuration: ''
+    deterministic: true
+  Nigma-1.2.87:
+    configuration: ''
+    deterministic: true
+  abcdSAT:
+    configuration: ''
+    deterministic: true
+  glucose-default:
+    configuration: ''
+    deterministic: true
+  glueminisat-Actmini:
+    configuration: ''
+    deterministic: true
+  minisat_BCD:
+    configuration: ''
+    deterministic: true
+  multi-sat-g2_0:
+    configuration: ''
+    deterministic: true
+  multi-sat-g2_2:
+    configuration: ''
+    deterministic: true
+  or-tools:
+    configuration: ''
+    deterministic: true
+  ratselfax_cnf_215_final:
+    configuration: ''
+    deterministic: true
+  riss_505_1:
+    configuration: ''
+    deterministic: true
+  riss_505_2:
+    configuration: ''
+    deterministic: true
+  satUZK-seq:
+    configuration: ''
+    deterministic: true
+number_of_feature_steps: 1
+performance_measures:
+- runtime
+performance_type:
+- runtime
+scenario_id: SAT15-INDU
