@@ -35,13 +35,16 @@ onlineScenarioTest = loadAslibScenarioIntoOnlineScenario(aslibScenarioName = asl
 
 onlineLearnerData = initialiseOnlineLearnerData(onlineScenario = onlineScenarioTest, mlrLearner = mlrLearnerConstant, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, keepOldRegressionTasks = keepOldRegressionTasks, doTimeDependentVerification = TRUE, doTimeDependentRegressionModelEvaluation = TRUE)
 
-instance = onlineLearnerData$onlineScenario$consideredInstances[1]
 availableAlgorithms = onlineLearnerData$onlineScenario$consideredAlgorithms
 desiredFeatures = onlineLearnerData$onlineScenario$consideredFeatures 
 availableInstances = onlineLearnerData$onlineScenario$consideredInstances
 timeHorizon = length(availableInstances)
+aslibScenario = onlineLearnerData$onlineScenario$aslibScenario #contains all info about the benchmark
 
-featureValues = getFeatureValuesForInstList(instance, desiredFeatures, onlineLearnerData$onlineScenario$aslibScenario)
+instance = availableInstances[1]
+featureValues = getFeatureValuesForInstList(instance, desiredFeatures, aslibScenario)
+runtimeOfFirstAlgOnFirstInst = getRuntimes(availableAlgorithms[1], instance, aslibScenario) 
+runtimeOfFirstAlgOnAllInst = getRuntimes(availableAlgorithms[1], availableInstances, aslibScenario)
 
 allRequiredDataStructures$AMatrix
 
