@@ -39,3 +39,28 @@ update_b_0_new <- function(b_0, r_t, z_t_a, B_a, A_a, b_a){
   b_0_new <- b_0 + (r_t * z_t_a) - (t(B_a) %*% A_a_inv %*% b_a)
   return(b_0_new)
 }
+
+########################################################
+# Helper functions for the main loop in hybrid version #
+########################################################
+
+compute_theta_a <- function(b_a, A_a, B_a, beta){
+  return(ginv(A_a) %*% (b_a - B_a %*% beta))
+}
+
+compute_s_t_a <- function(z_t_a, A_0, B_a, A_a, x_t_a){
+  A_0_inv <- ginv(A_0)
+  A_a_inv <- ginv(A_a)
+  s_t_a <- (t(z_t_a) %*% A_0_inv %*% z_t_a) 
+  	- 2 * (t(z_t_a) %*% A_0_inv %*% t(B_a) %*% A_a_inv %*% x_t_a)
+  	+ (t(x_t_a) %*% A_a_inv %*% x_t_a) 
+	+ (t(x_t_a) %*% A_a_inv %*% B_a %*% A_0_inv %*% t(B_a) %*% A_a_inv %*% x_t_a)
+  return(s_t_rec)
+}
+
+compute_p_t_a <- function(z_t_a, x_t_a, s_t_a, beta, theta_a, alpha){
+  p_t_a <- (t(z_t_a) %*% beta)
+	+ (t(x_t_a) %*% theta_a)
+	+ alpha * sqrt(s_t_a)
+  return(p_t_a)
+}
