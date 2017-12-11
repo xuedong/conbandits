@@ -1,12 +1,15 @@
 library(dplyr)
 
-source("update_hybrid.R")
-source("update_disjoint.R")
+source("utils_disjoint.R")
 
-linucb_disjoint <- function(horizon, arms){
-  return()
-}
-
-linucb_hybrid <- function(horizon, arms){
+linucb_disjoint <- function(horizon, arms, delta){
+  # Disjoint linear LinUCB model.
+  #
+  # Args:
+  #   	horizon: number of trials.
+  #	arms: number of arms (algorithms).
+  #	delta: constant.
+  #
+  # Returns:
   return()
 }
