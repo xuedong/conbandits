@@ -35,3 +35,6 @@ vignettes/*.pdf
 
 # Jupyter notebook checkpoints
 .ipynb_checkpoints
+
+# Temporary files created by vim
+*.swp
