@@ -12,12 +12,13 @@ sourceDir <- function(path, trace = TRUE, ...) {
 sourceDir("helpFunctions")
 source("utils_disjoint.R")
 
-linucb_disjoint <- function(horizon, arms, instance, delta, d){
+linucb_disjoint <- function(horizon, arms, instances, delta, d, desiredFeatures, aslibScenario){
 	# Disjoint linear LinUCB model.
 	#
 	# Args:
  	#   	horizon: number of trials.
   	#		arms: list of arms (algorithms).
+	#		instances: list of available instances.
   	#		delta: constant.
   	#		d: dimension of instance features.
   	#
@@ -33,6 +34,8 @@ linucb_disjoint <- function(horizon, arms, instance, delta, d){
   	p <- matrix(0, horizon, arms)
 
   	for (t in 1:horizon){
+		instance <- instances[t]
+		feature <- getFeatureValuesForInstList(instance, desiredFeatures, aslibScenario)
     	for (a in number_arms){
 	  		if (t == 1){
         		A[[a]] <- diag(d)
@@ -40,14 +43,14 @@ linucb_disjoint <- function(horizon, arms, instance, delta, d){
       		}
 
       		theta[[a]] <- compute_theta_a(b[[a]], A[[a]])
-      		x_t_a <- matrix(as.numeric(c(feature[t,], a)), d, 1)
+      		x_t_a <- matrix(as.numeric(c(feature, a)), d, 1)
       		p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], alpha)
     	}
 
   		arm_choice[t] <- which(p[t,] == max(p[t,]))
-  		#reward[t] <- getRuntimes(...) # TODO
+  		reward[t] <- getRuntimes(arms[arm_choice[t]], instance, aslibScenario)
 
-  		x_t_a <- matrix(as.numeric(c(feature[t,], arm_choice[t])), d, 1)
+  		x_t_a <- matrix(as.numeric(c(feature, arm_choice[t])), d, 1)
   		A[[arm_choice[t]]] <- update_A_a(A[[arm_choice[t]]], x_t_a)
   		b[[arm_choice[t]]] <- update_b_a(b[[arm_choice[t]]], reward[t], x_t_a)
   	}
