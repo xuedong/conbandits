@@ -17,8 +17,8 @@ linucb_disjoint <- function(arms, instances, features, delta, scenario, getRewar
   #
   # Returns:
   #   A, b
-  #   armChoices: vector of arm choices.
-  #   rewards: vector of rewards.
+  #   armChoices: list of arm choices.
+  #   rewards: list of rewards.
   alpha <- 1+sqrt(log(2/delta)/2)
   arm_choice <- c()
   reward <- c()

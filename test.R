@@ -44,10 +44,10 @@ availableInstances = onlineLearnerData$onlineScenario$consideredInstances
 timeHorizon = length(availableInstances)
 aslibScenario = onlineLearnerData$onlineScenario$aslibScenario #contains all info about the benchmark
 
-instance = availableInstances[1]
-featureValues = getFeatureValuesForInstList(instance, desiredFeatures, aslibScenario)
-runtimeOfFirstAlgOnFirstInst = getRuntimes(availableAlgorithms[1], instance, aslibScenario) 
-runtimeOfFirstAlgOnAllInst = getRuntimes(availableAlgorithms[1], availableInstances, aslibScenario)
+#instance = availableInstances[1]
+#featureValues = getFeatureValuesForInstList(instance, desiredFeatures, aslibScenario)
+#runtimeOfFirstAlgOnFirstInst = getRuntimes(availableAlgorithms[1], instance, aslibScenario) 
+#runtimeOfFirstAlgOnAllInst = getRuntimes(availableAlgorithms[1], availableInstances, aslibScenario)
 
 features = getFeatureValuesForInstList(availableInstances, desiredFeatures, aslibScenario)
 
