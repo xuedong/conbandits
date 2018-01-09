@@ -51,4 +51,5 @@ runtimeOfFirstAlgOnAllInst = getRuntimes(availableAlgorithms[1], availableInstan
 
 features = getFeatureValuesForInstList(availableInstances, desiredFeatures, aslibScenario)
 
-linucb_disjoint(availableAlgorithms, availableInstances, features, delta, aslibScenario, getRuntimes)
+res = linucb_disjoint(availableAlgorithms, availableInstances, features, delta, aslibScenario, getRuntimes)
+
