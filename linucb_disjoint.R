@@ -16,6 +16,9 @@ linucb_disjoint <- function(arms, instances, features, delta, scenario, getRewar
   #   getReward: reward function.
   #
   # Returns:
+  #   A, b
+  #   armChoices: vector of arm choices.
+  #   rewards: vector of rewards.
   alpha <- 1+sqrt(log(2/delta)/2)
   arm_choice <- c()
   reward <- c()
@@ -49,5 +52,5 @@ linucb_disjoint <- function(arms, instances, features, delta, scenario, getRewar
     b[[arm_choice[t]]] <- update_b_a(b[[arm_choice[t]]], reward[t], x_t_a)
   }
   
-  return(list("A"=A, "b"=b, "armChoice"=arm_choice, "reward"=reward))
+  return(list("A"=A, "b"=b, "armChoices"=arm_choice, "rewards"=reward))
 }
