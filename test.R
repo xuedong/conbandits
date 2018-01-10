@@ -41,6 +41,8 @@ onlineLearnerData = initialiseOnlineLearnerData(onlineScenario = onlineScenarioT
 availableAlgorithms = onlineLearnerData$onlineScenario$consideredAlgorithms
 desiredFeatures = onlineLearnerData$onlineScenario$consideredFeatures 
 availableInstances = onlineLearnerData$onlineScenario$consideredInstances
+initInstances = availableInstances[1:100]
+nextInstances = availableInstances[101:500]
 timeHorizon = length(availableInstances)
 aslibScenario = onlineLearnerData$onlineScenario$aslibScenario #contains all info about the benchmark
 
@@ -50,6 +52,10 @@ aslibScenario = onlineLearnerData$onlineScenario$aslibScenario #contains all inf
 #runtimeOfFirstAlgOnAllInst = getRuntimes(availableAlgorithms[1], availableInstances, aslibScenario)
 
 features = getFeatureValuesForInstList(availableInstances, desiredFeatures, aslibScenario)
+initFeatures = features[1:100,]
+nextFeatures = features[101:500,]
 
-res = linucb_disjoint(availableAlgorithms, availableInstances, features, delta, aslibScenario, getRuntimes)
+res1 = linucb_disjoint(availableAlgorithms, initInstances, initFeatures, delta, aslibScenario, getRuntimes)
+res2 = linucb_disjoint_update(res1$A, res1$b, availableAlgorithms, nextInstances, nextFeatures, delta, aslibScenario, getRuntimes)
+#init = linucb_initialization(availableAlgorithms, initInstances, initFeatures)
 
