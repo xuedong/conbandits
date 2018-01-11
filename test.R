@@ -55,7 +55,7 @@ features = getFeatureValuesForInstList(availableInstances, desiredFeatures, asli
 initFeatures = features[1:100,]
 nextFeatures = features[101:500,]
 
-res1 = linucb_disjoint(availableAlgorithms, initInstances, initFeatures, delta, aslibScenario, getRuntimes)
-res2 = linucb_disjoint_update(res1$A, res1$b, availableAlgorithms, nextInstances, nextFeatures, delta, aslibScenario, getRuntimes)
-#init = linucb_initialization(availableAlgorithms, initInstances, initFeatures)
+res1 = linucb_disjoint(availableAlgorithms, initInstances, initFeatures, delta, aslibScenario, getRuntimes, 0)
+res2 = linucb_disjoint_update(res1$A, res1$b, availableAlgorithms, nextInstances, nextFeatures, delta, aslibScenario, getRuntimes, 100)
+init = linucb_initialization(availableAlgorithms, initInstances, initFeatures, aslibScenario, getRuntimes, 0)
 

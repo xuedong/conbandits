@@ -4,7 +4,7 @@ library(llama)
 
 source("utils_disjoint.R")
 
-linucb_disjoint <- function(arms, instances, features, delta, scenario, getReward){
+linucb_disjoint <- function(arms, instances, features, delta, scenario, getReward, nb){
   # Disjoint linear LinUCB model.
   #
   # Args:
@@ -14,17 +14,20 @@ linucb_disjoint <- function(arms, instances, features, delta, scenario, getRewar
   #		delta: constant.
   #   scenario: benchmark scenario.
   #   getReward: reward function.
+  #   nb: current number of instances treated.
   #
   # Returns:
   #   A, b
   #   armChoices: list of arm choices.
   #   rewards: list of rewards.
+  #   counter: new number of instances treated.
   alpha <- 1+sqrt(log(2/delta)/2)
   arm_choice <- c()
   reward <- c()
   number_arms <- length(arms)
   horizon <- length(instances)
   d <- length(features[1,])
+  counter <- nb + horizon
   
   A <- list()
   b <- list()
@@ -52,40 +55,47 @@ linucb_disjoint <- function(arms, instances, features, delta, scenario, getRewar
     b[[arm_choice[t]]] <- update_b_a(b[[arm_choice[t]]], reward[t], x_t_a)
   }
   
-  return(list("A"=A, "b"=b, "armChoices"=arm_choice, "rewards"=reward))
+  return(list("A"=A, "b"=b, "armChoices"=arm_choice, "rewards"=reward, "counter"=counter))
 }
 
-linucb_initialization <- function(arms, instances, features){
-  # Initialization of A with full informatioin.
+linucb_initialization <- function(arms, instances, features, scenario, getReward, nb){
+  # Initialization of A and b with full informatioin.
   #
   # Args:
   #   arms
   #   instances
   #   features
+  #   nb
   #
   # Returns:
-  #   A
+  #   A and b
   number_arms <- length(arms)
   horizon <- length(instances)
   d <- length(features[1,])
+  counter <- nb + horizon
   
   A <- list()
+  b <- list()
   
   for (a in 1:number_arms){
     A[[a]] <- diag(d)
+    b[[a]] <- matrix(0, d, 1)
   }
   
   for (t in 1:horizon){
+    instance <- instances[t]
     for (a in 1:number_arms){
       x_t_a <- matrix(as.numeric(c(features[t, 2:d], a)), d, 1)
       A[[a]] <- update_A_a(A[[a]], x_t_a)
+      reward <- getReward(arms[a], instance, scenario)$runtime
+      b[[a]] <- update_b_a(b[[a]], reward, x_t_a)
     }
   }
   
-  return(list("A"=A))
+  return(list("A"=A, "b"=b, "counter"=counter))
 }
 
-linucb_disjoint_update <- function(A, b, arms, instances, features, delta, scenario, getReward){
+linucb_disjoint_update <- function(A, b, arms, instances, features, delta, scenario, getReward, nb){
   # LinUCB with an initial A and b.
   #
   # Args:
@@ -107,6 +117,7 @@ linucb_disjoint_update <- function(A, b, arms, instances, features, delta, scena
   number_arms <- length(arms)
   horizon <- length(instances)
   d <- length(features[1,])
+  counter <- nb + horizon
   
   theta <- list()
   p <- matrix(0, horizon, number_arms)
@@ -127,5 +138,5 @@ linucb_disjoint_update <- function(A, b, arms, instances, features, delta, scena
     b[[arm_choice[t]]] <- update_b_a(b[[arm_choice[t]]], reward[t], x_t_a)
   }
   
-  return(list("A"=A, "b"=b, "armChoices"=arm_choice, "rewards"=reward))
+  return(list("A"=A, "b"=b, "armChoices"=arm_choice, "rewards"=reward, "counter"=counter))
 }
