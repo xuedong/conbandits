@@ -4,14 +4,14 @@ library(llama)
 
 source("utils_disjoint.R")
 
-linucb_disjoint <- function(arms, instances, features, delta, scenario, getReward, nb){
+linucb_disjoint <- function(arms, instances, features, alpha, scenario, getReward, nb){
   # Disjoint linear LinUCB model.
   #
   # Args:
   #		arms: list of arms (algorithms).
   #		instances: list of available instances.
   #   features: features associated with instances.
-  #		delta: constant.
+  #		alpha: constant (may be set to be an increasing function on the horizon).
   #   scenario: benchmark scenario.
   #   getReward: reward function.
   #   nb: current number of instances treated.
@@ -20,8 +20,7 @@ linucb_disjoint <- function(arms, instances, features, delta, scenario, getRewar
   #   A, b
   #   armChoices: list of arm choices.
   #   rewards: list of rewards.
-  #   counter: new number of instances treated.
-  alpha <- 1+sqrt(log(2/delta)/2)
+  #   counter: number of instances treated after the call of this function.
   arm_choice <- c()
   reward <- c()
   number_arms <- length(arms)
@@ -69,6 +68,7 @@ linucb_initialization <- function(arms, instances, features, scenario, getReward
   #
   # Returns:
   #   A and b
+  #   counter
   number_arms <- length(arms)
   horizon <- length(instances)
   d <- length(features[1,])
@@ -95,7 +95,7 @@ linucb_initialization <- function(arms, instances, features, scenario, getReward
   return(list("A"=A, "b"=b, "counter"=counter))
 }
 
-linucb_disjoint_update <- function(A, b, arms, instances, features, delta, scenario, getReward, nb){
+linucb_disjoint_update <- function(A, b, arms, instances, features, alpha, scenario, getReward, nb){
   # LinUCB with an initial A and b.
   #
   # Args:
@@ -103,15 +103,16 @@ linucb_disjoint_update <- function(A, b, arms, instances, features, delta, scena
   #		arms: list of arms (algorithms).
   #		instances: list of available instances.
   #   features: features associated with instances.
-  #		delta: constant.
+  #		alpha: constant.
   #   scenario: benchmark scenario.
   #   getReward: reward function.
+  #   nb: current number of instances treated.
   #
   # Returns:
   #   New A and b
   #   armChoices: list of arm choices.
   #   rewards: list of rewards.
-  alpha <- 1+sqrt(log(2/delta)/2)
+  #   counter: number of instances treated after the call of this function.
   arm_choice <- c()
   reward <- c()
   number_arms <- length(arms)
