@@ -1,12 +1,15 @@
 #For batchtools. Changes standard values to given values.
 #data contains an onlineScenario object
-onlineScenarioSubsampleFunction = function(data, job, pInTraining, pInRuntime, pInVerification){
-  static = data
-  oldOnlineScenario =  static$onlineScenario #static$onlineScenario
-  newOnlineScenario = createOnlineScenario(oldOnlineScenario$aslibScenario, oldOnlineScenario$consideredAlgorithms, oldOnlineScenario$consideredInstances, oldOnlineScenario$consideredFeatures, pInTraining,pInRuntime, pInVerification)
+onlineScenarioSubsampleFunction = function(data, job, pInTraining, pInRuntime, pInVerification, performanceMeasure, mlrLearnerName){
+ 
+  onlineScenario = data
+  oldOnlineScenario =  onlineScenario
+  newOnlineScenario = createOnlineScenario(oldOnlineScenario$aslibScenario, oldOnlineScenario$consideredAlgorithms, oldOnlineScenario$consideredInstances, oldOnlineScenario$consideredFeatures,
+                                           pInTraining,pInRuntime, pInVerification, performanceMeasure = performanceMeasure)
   
-
-  onlineLearnerData = initialiseOnlineLearnerData(onlineScenario = newOnlineScenario, mlrLearner=static$mlrLearner, nrOfStepsWithoutRetraining = static$nrOfStepsWithoutRetraining, keepOldRegressionTasks = static$keepOldRegressionTasks, doTimeDependentVerification=static$doTimeDependentVerification, doTimeDependentRegressionModelEvaluation =static$doTimeDependentRegressionModelEvaluation )
+  
+  return(newOnlineScenario)
+  #onlineLearnerData = initialiseOnlineLearnerData(onlineScenario = newOnlineScenario, mlrLearner=mlrLearner, nrOfStepsWithoutRetraining = onlineLearnerData$nrOfStepsWithoutRetraining, keepOldRegressionTasks = onlineLearnerData$keepOldRegressionTasks, doTimeDependentVerification=onlineLearnerData$doTimeDependentVerification, doTimeDependentRegressionModelEvaluation =onlineLearnerData$doTimeDependentRegressionModelEvaluation )
   #return(onlineLearnerData)  
 }
 

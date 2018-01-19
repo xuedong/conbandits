@@ -1,5 +1,5 @@
 #Helper methods for accessing data from an aslib scenario and transforming aslib scenarios
-
+library("data.table")
 
 #Creates a new aslibScenario based on the provided, but throws out all instances that are unsolved by any of the algorithms
 limitScenarioToSolvedInstances = function(aslibScenario){
@@ -26,6 +26,48 @@ createSubsetOfAslibScenario = function(aslibScenario, instanceSubset){
 }
 
 
+#Adds a column to the algo.runs data.frame of an aslib scenario that shows the values for PAR10 performance
+#Assumes there exists a column called' runtime' containing the runtimes
+addPar10PerformanceToAslibScenario= function(aslibScenario){
+  aslibScenario$algo.runs$PAR10 = aslibScenario$algo.runs$runtime
+  timeoutIndices = aslibScenario$algo.runs$runstatus != 'ok'
+  timeoutPerformance = aslibScenario$desc$algorithm_cutoff_time*10
+  aslibScenario$algo.runs$PAR10[timeoutIndices] = timeoutPerformance
+  return(aslibScenario)
+}
+
+
+
+#Creates the 'performance' column in aslibScenario$algo.runs and fills it with the desired performanceMeasure
+#PAR10 case: creates a PAR10 score column if it does not yet exist
+#All performances are maximised. If it is standard minimised (as with PAR10/runtime),
+#the performances are transformed to turn them into maximisation performances
+addPerformanceColumnToAslibScenario = function(aslibScenario, performanceMeasure){
+  colNames = names(aslibScenario$algo.runs)
+  if(performanceMeasure == "PAR10"){
+    if(! ("PAR10" %in% colNames | "runtime" %in% colNames)){
+      stop("No PAR10 performance column can be created for the aslibScenario; column called 'runtime' or 'PAR10' is required")
+    }
+    if(! "PAR10" %in% colNames){
+      aslibScenario = addPar10PerformanceToAslibScenario(aslibScenario)
+    }
+    timeoutLimit = aslibScenario$desc$algorithm_cutoff_time
+    aslibScenario$algo.runs$performance = 10*timeoutLimit-aslibScenario$algo.runs$PAR10
+    return(aslibScenario)
+  }
+  
+  #other cases: simply paste required column to performanceMeasure
+  #Note: assumes it's a maximisation performance. If not, must be transformed
+  if (! (performanceMeasure %in% colNames)){
+    stop(paste("Desired performance", performanceMeasure, "not found in the columns of aslibScenario$algo.runs"))
+  }
+  aslibScenario$algo.runs$performance = aslibScenario$algo.runs[,performanceMeasure]
+  return(aslibScenario)
+  
+  
+}
+
+
 #Returns a dataframe with 1+len(featureNameList) columns. The first column contains the instance_id. The following columns contain the feature values specified in 'featureNameList'
 #Only instances in 'instanceList' are considered
 getFeatureValuesForInstList = function(instanceList, featureIdList, scenario){
@@ -40,3 +82,75 @@ getRuntimes = function(algorithmId, instanceList, scenario){
   runtimesDataFrame = subset(scenario$algo.runs, algorithm == algorithmId & instance_id %in% instanceList, select = c(instance_id, runtime))
   return(runtimesDataFrame)    
 }
+
+#Returns a dataframe with 2 columns: 1 with instance_id's and another with the performances of the specified algorithm on them.
+#The instances considered are listed in instanceList
+getPerformances = function(algorithmId, instanceList, scenario){
+  performancessDataFrame = subset(scenario$algo.runs, algorithm == algorithmId & instance_id %in% instanceList, select = c(instance_id, performance))
+  return(performancessDataFrame)    
+}
+
+#returns the single best solver as measured by the 'performance' column of the algo.runs in aslibScenario
+#Calculated based on consideredInstances and consideredAlgorithms
+getSingleBestSolver = function(aslibScenario, consideredInstances, consideredAlgorithms){
+  bestAlgorithm = NULL
+  bestMeanPerf = -1
+  for(algorithm in consideredAlgorithms){
+    performances = aslibScenario$algo.runs[aslibScenario$algo.runs$instance_id %in% consideredInstances
+                                           & aslibScenario$algo.runs$algorithm == algorithm,]$performance
+    meanPerf = mean(performances)
+    if(is.null(bestAlgorithm) | meanPerf > bestMeanPerf){
+      bestAlgorithm = algorithm
+      bestMeanPerf = meanPerf
+    }
+  }
+  return(bestAlgorithm)
+}  
+  
+#returns the single worst solver as measured by the 'performance' column of the algo.runs in aslibScenario
+#This is the algorithm with wordst average performance
+#Calculated based on consideredInstances and consideredAlgorithms
+getSingleWorstSolver = function(aslibScenario, consideredInstances, consideredAlgorithms){
+  worstAlgorithm = NULL
+  worstMeanPerf = -1
+  for(algorithm in consideredAlgorithms){
+    performances = aslibScenario$algo.runs[aslibScenario$algo.runs$instance_id %in% consideredInstances
+                                           & aslibScenario$algo.runs$algorithm == algorithm,]$performance
+    meanPerf = mean(performances)
+    if(is.null(worstAlgorithm) | meanPerf < worstMeanPerf){
+      worstAlgorithm = algorithm
+      worstMeanPerf = meanPerf
+    }
+  }
+  return(worstAlgorithm)
+}  
+
+#Returns the performance of the virtual best solver on the given instances
+#Considering the specified algorithms
+getVirtualBestSolverPerformance = function(aslibScenario, instanceList, consideredAlgorithms){
+  performancesList = c()
+  for(instance in instanceList){
+    bestPerf =  max(aslibScenario$algo.runs[aslibScenario$algo.runs$instance_id == instance & 
+                                              aslibScenario$algo.runs$algorithm %in% consideredAlgorithms,]$performance)
+    performancesList = c(performancesList, bestPerf)
+  }
+  resultTable = data.table("instance_id" = instanceList, "performance" = performancesList)
+  
+  return(resultTable)
+}
+
+#Returns the performance of the virtual best solver on the given instances
+#Considering the specified algorithms
+getVirtualWorstSolverPerformance = function(aslibScenario, instanceList, consideredAlgorithms){
+ performancesList = c()
+ for(instance in instanceList){
+   worstPerf =  min(aslibScenario$algo.runs[aslibScenario$algo.runs$instance_id == instance & 
+                                              aslibScenario$algo.runs$algorithm %in% consideredAlgorithms,]$performance)
+   performancesList = c(performancesList, worstPerf)
+ }
+ resultTable = data.table("instance_id" = instanceList, "performance" = performancesList)
+ 
+ return(resultTable)
+ 
+}
+

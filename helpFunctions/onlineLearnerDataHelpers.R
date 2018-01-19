@@ -42,7 +42,7 @@ initialiseOnlineLearnerData = function(onlineScenario, mlrLearner, nrOfStepsWith
   #Initialise the overview of regression tasks and regression models with the initial model
   regressionTaskMatrixOverTime = list()
   for(algorithmName in onlineScenario$consideredAlgorithms){
-    regressionTaskMatrixOverTime[[algorithmName]] = list()
+    regressionTaskMatrixOverTime[[algorithmName]] = regressionTaskList[algorithmName]
   }
   
 
@@ -56,8 +56,8 @@ initialiseOnlineLearnerData = function(onlineScenario, mlrLearner, nrOfStepsWith
   return(onlineLearnerData) 
 }
 
-
-initialiseEmptyOnlineLearnerData = function(onlineScenario, mlrLearner, nrOfStepsWithoutRetraining = 0, keepOldRegressionTasks=TRUE,doTimeDependentVerification=TRUE, doTimeDependentRegressionModelEvaluation = TRUE){
+#Creates an empty onlineLearnerData object. This is a standard onlineLearner object without the mlrLearner and with empty regression tasks and models
+initialiseEmptyOnlineLearnerData = function(onlineScenario, nrOfStepsWithoutRetraining = 0, keepOldRegressionTasks=TRUE,doTimeDependentVerification=TRUE, doTimeDependentRegressionModelEvaluation = TRUE){
   #Create a regression model for each algorithm
   #At initialisation stage the tasks will only contain offline instances
   regressionTaskList = NULL
@@ -83,6 +83,7 @@ initialiseEmptyOnlineLearnerData = function(onlineScenario, mlrLearner, nrOfStep
     regressionTaskMatrixOverTime[[algorithmName]] = list()
   }
   
+  mlrLearner = NULL
   
   selectionOverview = list()
   
@@ -217,6 +218,12 @@ removeModelsFromOnlineLearnerData = function(onlineLearnerData){
   return(onlineLearnerData)
 }
 
+removeTasksFromOnlineLearnerData = function(onlineLearnerData){
+  for(algorithmName in onlineLearnerData$onlineScenario$consideredAlgorithms){
+    onlineLearnerData$regressionTaskMatrixOverTime[[algorithmName]] = NULL
+  }
+  return(onlineLearnerData)
+}
 
 
 

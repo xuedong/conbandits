@@ -11,19 +11,26 @@ library("BBmisc")
 #	onlineInstanceOverview: an overview for each algorithm of which online instances it has access to
 #llamaScenario: the equivalent of aslibScenario that is interpretable by the code from the R-package LLAMA
 #llamaScenarioVerificationOnly: a llama-interpretable scenario consisting only of the instances in the verification set
-createOnlineScenario = function(aslibScenario, consideredAlgorithms, consideredInstances, consideredFeatures, pInTraining,pInRuntime, pInVerification){
+createOnlineScenario = function(aslibScenario, consideredAlgorithms, consideredInstances, consideredFeatures, pInTraining,pInRuntime, pInVerification, performanceMeasure){
+  #Adding performance column to the aslibScenario; possible adding an additional column with the desired performance measure
+  aslibScenario = addPerformanceColumnToAslibScenario(aslibScenario, performanceMeasure) #from aslibHelpers.R
+  
   onlineInstanceOverview = initialiseOnlineInstanceOverview(consideredAlgorithms)
   onlineScenario = makeS3Obj("onlineScenario", aslibScenario = aslibScenario, consideredInstances=consideredInstances, consideredAlgorithms = consideredAlgorithms, onlineInstanceOverview = onlineInstanceOverview, consideredFeatures = consideredFeatures, pInTraining=pInTraining, pInRuntime=pInRuntime, pInVerification=pInVerification)
   onlineScenario = createTrainingRuntimeAndVerificationInstanceSets(onlineScenario)
+  onlineScenario$performanceMeasure = performanceMeasure
   
-  onlineScenario$llamaScenario = convertToLlama(aslibScenario) #This code sometimes throws 'warning: 'Warning in convertToCheck(asscenario, measure, feature.steps, TRUE) :  #Requested to add feature costs, but none in scenario. Adding always 0 feature costs.'
+  
+  #onlineScenario$llamaScenario = convertToLlama(aslibScenario) #This code sometimes throws 'warning: 'Warning in convertToCheck(asscenario, measure, feature.steps, TRUE) :  #Requested to add feature costs, but none in scenario. Adding always 0 feature costs.'
   #Creating the llamaScenario based only on the verification instances
-  verificationOnlyScenario = createSubsetOfAslibScenario(aslibScenario, onlineScenario$verificationSet)
-  onlineScenario$llamaScenarioVerificationOnly = convertToLlama(verificationOnlyScenario)
+  #verificationOnlyScenario = createSubsetOfAslibScenario(aslibScenario, onlineScenario$verificationSet)
+  #onlineScenario$llamaScenarioVerificationOnly = convertToLlama(verificationOnlyScenario)
   #Creating the llamaScenario based only on the runtime instances
-  runtimeOnlyScenario = createSubsetOfAslibScenario(aslibScenario, onlineScenario$runtimeSet)
-  onlineScenario$llamaScenarioOnlineOnly = convertToLlama(runtimeOnlyScenario)
+  #runtimeOnlyScenario = createSubsetOfAslibScenario(aslibScenario, onlineScenario$runtimeSet)
+  #onlineScenario$llamaScenarioOnlineOnly = convertToLlama(runtimeOnlyScenario)
   
+  onlineScenario$singleBest = getSingleBestSolver(aslibScenario, consideredInstances = consideredInstances, consideredAlgorithms = consideredAlgorithms)
+  onlineScenario$singleWorst = getSingleWorstSolver(aslibScenario, consideredInstances = consideredInstances, consideredAlgorithms = consideredAlgorithms)
   return(onlineScenario)
 }
 

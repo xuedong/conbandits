@@ -2,9 +2,9 @@
 selectBestAlgorithmBatch = function(newInstanceIdsList, onlineLearnerData){
   selectionOverview = list()
   
-  batchOfPredictedRuntimes = getBatchOfPredictedRuntimes(newInstanceIdsList, onlineLearnerData)
+  batchOfPredictedRuntimes = getBatchOfPredictedPerformances(newInstanceIdsList, onlineLearnerData)
   for(instanceId in newInstanceIdsList){
-    bestAlgorithm = selectAlgorithmWithBestPredictedRuntime(batchOfPredictedRuntimes[instanceId,])
+    bestAlgorithm = selectAlgorithmWithBestPredictedPerformance(batchOfPredictedRuntimes[instanceId,])
     selectionOverview[[instanceId]] = bestAlgorithm
   }
   
@@ -15,7 +15,7 @@ selectBestAlgorithmBatch = function(newInstanceIdsList, onlineLearnerData){
 
 #Returns the predicted runtimes for a batch of instances
 #WARNING: some code duplication with getBatchOfLcbValues in algSelectionLcb.R
-getBatchOfPredictedRuntimes = function(newInstanceIdsList, onlineLearnerData){
+getBatchOfPredictedPerformances = function(newInstanceIdsList, onlineLearnerData){
   
   
   
@@ -23,7 +23,7 @@ getBatchOfPredictedRuntimes = function(newInstanceIdsList, onlineLearnerData){
   newInstanceFeaturesOverview = subset(newInstanceFeaturesOverviewWithInstId, TRUE, select = names(newInstanceFeaturesOverviewWithInstId)[2:length(names(newInstanceFeaturesOverviewWithInstId))])
   
     
-  predictedRuntimeOverview = list()
+  predictedPerformanceOverview = list()
   #Obtain a list with the most recent models from the onlineLearnerData
   
   currentModelsList = getCurrentModelList(onlineLearnerData) 
@@ -37,13 +37,13 @@ getBatchOfPredictedRuntimes = function(newInstanceIdsList, onlineLearnerData){
     names(meansOfBatch) = newInstanceFeaturesOverviewWithInstId[,"instance_id"]
     
     #append column: col of runtimes of this alg
-    predictedRuntimeOverview = cbind(predictedRuntimeOverview, meansOfBatch)
+    predictedPerformanceOverview = cbind(predictedPerformanceOverview, meansOfBatch)
     
   }
-  colnames(predictedRuntimeOverview) = onlineLearnerData$onlineScenario$consideredAlgorithms
+  colnames(predictedPerformanceOverview) = onlineLearnerData$onlineScenario$consideredAlgorithms
   
   #Returns correct predictions for the instances according to the
-  return (predictedRuntimeOverview)
+  return (predictedPerformanceOverview)
   
 }
 
@@ -88,14 +88,14 @@ selectRandomAlgorithm = function(newInstanceId, onlineLearnerData){
 
 #Returns the algorithm with highest predicted runtime given the runtimes in 'predictedPerformancesList'
 #The elements in 'predictedPerformancesList' must be indexed by the algorithm names
-selectAlgorithmWithWorstPredictedRuntime = function(predictedPerformancesList){
-  maxIndex = which.max(predictedPerformancesList)
-  return(maxIndex)
-}
+#selectAlgorithmWithWorstPredictedRuntime = function(predictedPerformancesList){
+#  maxIndex = which.max(predictedPerformancesList)
+#  return(maxIndex)
+#}
 
-selectAlgorithmWithBestPredictedRuntime = function(predictedPerformancesList){
-  minIndex = which.min(predictedPerformancesList)
-  return(names(predictedPerformancesList)[[minIndex]])
+selectAlgorithmWithBestPredictedPerformance = function(predictedPerformancesList){
+  maxIndex = which.max(predictedPerformancesList)
+  return(names(predictedPerformancesList)[[maxIndex]])
 }
 
 #Returns data which can be fed to an mlr model to make predictions for the specified instances

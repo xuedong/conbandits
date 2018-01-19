@@ -1,24 +1,29 @@
 #Loads the aslib scenario with name 'aslibScenarioName'
 #Creates an onlineScenario object containing all algorithms and features of the scenario
-loadAslibScenarioIntoOnlineScenario = function(aslibScenarioName, pInTraining,pInRuntime, pInVerification){
+loadAslibScenarioIntoOnlineScenario = function(aslibScenarioName, pInTraining,pInRuntime, pInVerification, performanceMeasure){
   scenario = parseASScenario(paste(getAslibFilesMapLocation(),aslibScenarioName, sep=""))
   relevantFeatureList = getFeatureNames(scenario)
   relevantAlgorithmList = getAlgorithmNames(scenario)
   relevantInstanceList = getInstanceNames(scenario)
-  onlineScenario = createOnlineScenario(aslibScenario = scenario, consideredAlgorithms = relevantAlgorithmList, consideredInstances = relevantInstanceList, consideredFeatures = relevantFeatureList, pInTraining=pInTraining, pInRuntime=pInRuntime, pInVerification=pInVerification)
+  onlineScenario = createOnlineScenario(aslibScenario = scenario, consideredAlgorithms = relevantAlgorithmList, 
+                                        consideredInstances = relevantInstanceList, consideredFeatures = relevantFeatureList,
+                                        pInTraining=pInTraining, pInRuntime=pInRuntime, pInVerification=pInVerification,
+                                        performanceMeasure = performanceMeasure)
   return(onlineScenario)
 }
 
-loadAslibScenarioIntoOnlineScenarioWithTop3Alg = function(aslibScenarioName, pInTraining,pInRuntime, pInVerification){
+loadAslibScenarioIntoOnlineScenarioWithTop3Alg = function(aslibScenarioName, pInTraining,pInRuntime, pInVerification, performanceMeasure){
   scenario = parseASScenario(paste(getAslibFilesMapLocation(),aslibScenarioName, sep=""))
   relevantFeatureList = getFeatureNames(scenario)
   relevantAlgorithmList = getTop3AlgorithmsInScenario(scenario)
   relevantInstanceList = getInstanceNames(scenario)
-  onlineScenario = createOnlineScenario(aslibScenario = scenario, consideredAlgorithms = relevantAlgorithmList, consideredInstances = relevantInstanceList, consideredFeatures = relevantFeatureList, pInTraining=pInTraining, pInRuntime=pInRuntime, pInVerification=pInVerification)
+  onlineScenario = createOnlineScenario(aslibScenario = scenario, consideredAlgorithms = relevantAlgorithmList, consideredInstances = relevantInstanceList, 
+                                        consideredFeatures = relevantFeatureList, pInTraining=pInTraining, pInRuntime=pInRuntime, pInVerification=pInVerification,
+                                        performanceMeasure = performanceMeasure)
   return(onlineScenario)
 }
 
-loadAslibScenarioIntoOnlineScenarioWith3MostCompatibleAlg = function(aslibScenarioName, pInTraining,pInRuntime, pInVerification){
+loadAslibScenarioIntoOnlineScenarioWith3MostCompatibleAlg = function(aslibScenarioName, pInTraining,pInRuntime, pInVerification, performanceMeasure){
   scenario = parseASScenario(paste(getAslibFilesMapLocation(),aslibScenarioName, sep=""))
   relevantFeatureList = getFeatureNames(scenario)
   relevantAlgorithmList = get3MostCompatibleAlgorithmsInScenario(scenario)
@@ -26,7 +31,9 @@ loadAslibScenarioIntoOnlineScenarioWith3MostCompatibleAlg = function(aslibScenar
     relevantAlgorithmList = relevantAlgorithmList[1:2]
   }
   relevantInstanceList = getInstanceNames(scenario)
-  onlineScenario = createOnlineScenario(aslibScenario = scenario, consideredAlgorithms = relevantAlgorithmList, consideredInstances = relevantInstanceList, consideredFeatures = relevantFeatureList, pInTraining=pInTraining, pInRuntime=pInRuntime, pInVerification=pInVerification)
+  onlineScenario = createOnlineScenario(aslibScenario = scenario, consideredAlgorithms = relevantAlgorithmList, consideredInstances = relevantInstanceList, 
+                                        consideredFeatures = relevantFeatureList, pInTraining=pInTraining, pInRuntime=pInRuntime, pInVerification=pInVerification,
+                                        performanceMeasure = performanceMeasure)
   return(onlineScenario)
 }
 
@@ -66,7 +73,7 @@ get3MostCompatibleAlgorithmsInScenario = function(scenario){
 #Returns the map that contains the maps with aslib scenarios. 
 #Introduced for easy adaptation to other computers
 getAslibFilesMapLocation = function(){
-  return("/home/xuedong/Documents/xuedong/phd/work/code/conbandits/HansCode/aslib_data-master/")
+  return("C:\\Users\\u0075355\\Documents\\Onderzoek\\ASLIB\\aslib_data-aslib-v4.0\\")
   #return("C:\\Users\\u0075355\\Documents\\Onderzoek\\ASLIB\\aslib_data-master_jan-2017\\aslib_data-master\\")
   #return("/home/hpc/pr74ze/di36gac/hans_test/aslib_data-master/")
   

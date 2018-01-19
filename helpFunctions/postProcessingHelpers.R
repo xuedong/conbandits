@@ -1,13 +1,16 @@
 #Adds a new field to the onlineLearnerData containing the performance observed during the online phase of the simulation
 addRuntimePerformanceInfoToOnlineLearnerData = function(onlineLearnerData){
-  onlineLearnerData$performanceInfo$runtime$observedPerformance = extractPerformanceMeasuresFromOnlineLearnerData(onlineLearnerData)
+  #onlineLearnerData$performanceInfo$runtime$observedPerformance = extractPerformanceMeasuresFromOnlineLearnerData(onlineLearnerData)
+  selectionOverview = obtainOrderedSelectionOverview(onlineLearnerData)
+  
+  onlineLearnerData$performanceInfo$runtime = createPerformanceOverviewForSelectionOverview(selectionOverview, onlineLearnerData$onlineScenario)
   
   #VBS and singleBest performance
-  vbsPerformanceOverview =  getVbsPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioOnlineOnly) 
-  onlineLearnerData$performanceInfo$runtime$vbsPerformance = vbsPerformanceOverview
+  #vbsPerformanceOverview =  getVbsPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioOnlineOnly) 
+  #onlineLearnerData$performanceInfo$runtime$vbsPerformance = vbsPerformanceOverview
   
-  singleBestPerformanceOverview = getSingleBestPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioOnlineOnly) 
-  onlineLearnerData$performanceInfo$runtime$singleBestPerformance = singleBestPerformanceOverview
+  #singleBestPerformanceOverview = getSingleBestPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioOnlineOnly) 
+  #onlineLearnerData$performanceInfo$runtime$singleBestPerformance = singleBestPerformanceOverview
   
   return(onlineLearnerData)
 }
@@ -17,18 +20,21 @@ addVerificationPerformanceInfoToOnlineLearnerData = function(onlineLearnerData){
   modelList = getCurrentModelList(onlineLearnerData)
   
   selectionOverview = getSelectionOverviewForInstanceSet(modelList, onlineLearnerData$onlineScenario$aslibScenario, onlineLearnerData$onlineScenario$verificationSet, onlineLearnerData$onlineScenario$consideredFeatures)
-  performanceMeasureOverview = obtainPerformanceMeasureOverview(onlineLearnerData$onlineScenario$llamaScenario, selectionOverview)
+  onlineLearnerData$performanceInfo$verification = createPerformanceOverviewForSelectionOverview(selectionOverview, onlineLearnerData$onlineScenario)
+  
+  
+  #performanceMeasureOverview = obtainPerformanceMeasureOverview(onlineLearnerData$onlineScenario$llamaScenario, selectionOverview)
   ##can't pass entire scenario?
   
-  onlineLearnerData$performanceInfo$verification$selectionOverview = selectionOverview
-  onlineLearnerData$performanceInfo$verification$observedPerformance = performanceMeasureOverview
+  #onlineLearnerData$performanceInfo$verification$selectionOverview = selectionOverview
+  #onlineLearnerData$performanceInfo$verification$observedPerformance = performanceMeasureOverview
   
   #VBS and singleBest performance
-  vbsPerformanceOverview =  getVbsPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioVerificationOnly) 
-  onlineLearnerData$performanceInfo$verification$vbsPerformance = vbsPerformanceOverview
+  #vbsPerformanceOverview =  getVbsPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioVerificationOnly) 
+  #onlineLearnerData$performanceInfo$verification$vbsPerformance = vbsPerformanceOverview
   
-  singleBestPerformanceOverview = getSingleBestPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioVerificationOnly) 
-  onlineLearnerData$performanceInfo$verification$singleBestPerformance = singleBestPerformanceOverview
+  #singleBestPerformanceOverview = getSingleBestPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioVerificationOnly) 
+  #onlineLearnerData$performanceInfo$verification$singleBestPerformance = singleBestPerformanceOverview
   
   return(onlineLearnerData)
 }
@@ -59,7 +65,7 @@ getSelectionOverviewForInstanceSet = function(models, aslibScenario, instanceLis
     for(algorithmName in names(models)){
       predictedRuntimes[[algorithmName]] = predictionOverviews[[algorithmName]][[instanceId]]
     }
-    bestAlg = selectAlgorithmWithBestPredictedRuntime(predictedRuntimes)
+    bestAlg = selectAlgorithmWithBestPredictedPerformance(predictedRuntimes)
     selectionOverview[[selectionOverview$instanceId == instanceId,2]] = bestAlg
   }
   
@@ -72,11 +78,11 @@ getSelectionOverviewForInstanceSet = function(models, aslibScenario, instanceLis
 
 #Returns a performanceMeasureOverview object containing some performance measures for the specified job
 #Doubled code in onlineLearnerData's 
-extractPerformanceMeasuresFromOnlineLearnerData = function(onlineLearnerData){
-  selectionOverview = obtainOrderedSelectionOverview(onlineLearnerData)
-  performanceOverview = obtainPerformanceMeasureOverview(onlineLearnerData$onlineScenario$llamaScenario, selectionOverview)
-  return(performanceOverview)
-}
+#extractPerformanceMeasuresFromOnlineLearnerData = function(onlineLearnerData){
+#  selectionOverview = obtainOrderedSelectionOverview(onlineLearnerData)
+#  performanceOverview = obtainPerformanceMeasureOverview(onlineLearnerData$onlineScenario$llamaScenario, selectionOverview)
+#  return(performanceOverview)
+#}
 
 
 #Returns the normalised version of the performance denoted in observedPerformance

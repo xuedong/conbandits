@@ -138,29 +138,59 @@ getAmountOfInstancesHandledByAlgorithmAtTimestep = function(onlineLearnerData, a
   return(amountOfHandledInstances)
 }
 
+#Calculates the performance of the current selection models and adds it to the timestep performanceInfo
+#If a timestep for the same amount of instances handled already exists, it is overwritten
 addTimestepPerformanceToOnlineLearnerData = function(onlineLearnerData){
   currentTimestep = length(onlineLearnerData$instanceTimeMap) #Amount of handled online instances
-  onlineLearnerData$performanceInfo$timestep$availableTimesteps = c(onlineLearnerData$performanceInfo$timestep$availableTimesteps, currentTimestep)
+  
+  if(length(onlineLearnerData$performanceInfo$timestep$availableTimesteps) > 0){
+    lastTimestepWithPerformanceInfo = tail(onlineLearnerData$performanceInfo$timestep$availableTimesteps,1)
+  }
+  else{
+    lastTimestepWithPerformanceInfo = -1 #no timestep performance info yet
+  }
+  #Only if the new timestep is actually different from the last one is it added. 
+  #(if not: the performance info will be overwritten)
+  if(currentTimestep != lastTimestepWithPerformanceInfo){
+    onlineLearnerData$performanceInfo$timestep$availableTimesteps = c(onlineLearnerData$performanceInfo$timestep$availableTimesteps, currentTimestep)
+  }
+  
   
   models = getCurrentModelList(onlineLearnerData)
   selectionOverview = getSelectionOverviewForInstanceSet(models, onlineLearnerData$onlineScenario$aslibScenario, onlineLearnerData$onlineScenario$verificationSet, onlineLearnerData$onlineScenario$consideredFeatures)
-  performanceMeasureOverview = obtainPerformanceMeasureOverview(onlineLearnerData$onlineScenario$llamaScenario, selectionOverview)
-  performanceMeasureOverview$timepoint = currentTimestep
+  
+  performanceOverviewDataTable = createPerformanceOverviewForSelectionOverview(selectionOverview, onlineLearnerData$onlineScenario)
     
   positionOfNewTimepoint = length(onlineLearnerData$performanceInfo$timestep$availableTimesteps)
-
-  
- # Caclulating VBS and SBS info
-  verificationSbs = getSingleBestPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioVerificationOnly) 
-  verificationVbs = getVbsPerformanceOverview(llamaScenario = onlineLearnerData$onlineScenario$llamaScenarioVerificationOnly) 
-  
-  #Adding all data
-  # onlineLearnerData$performanceInfo$timestep$selectionModelQualityList[[positionOfNewTimepoint]] = performanceMeasureOverview
-  
-  timepointInfo = makeS3Obj("timepointInfo", selectionOverview = selectionOverview, observedPerformance = performanceMeasureOverview, vbsPerformance = verificationVbs, singleBestPerformance = verificationSbs)
+  timepointInfo = performanceOverviewDataTable 
   onlineLearnerData$performanceInfo$timestep$selectionModelQualityList[[positionOfNewTimepoint]] = timepointInfo
   
   return(onlineLearnerData)
+}
+
+#Adds observed performance and some additional performance columns to the selectionOverview
+#returns the result as a datatable
+createPerformanceOverviewForSelectionOverview = function(selectionOverview, onlineScenario){
+  instNames = selectionOverview$instanceId
+  
+  selectionOverviewWithPerf = extendSelectionOverviewWithPerformance(selectionOverview, onlineScenario$aslibScenario)
+  
+  
+  sbsPerf = getPerformances(onlineScenario$singleBest, instNames, onlineScenario$aslibScenario) #single best solver
+  swsPerf = getPerformances(onlineScenario$singleWorst, instNames, onlineScenario$aslibScenario) #single best solver #single worst solver
+  vbsPerf = getVirtualBestSolverPerformance(onlineScenario$aslibScenario, instNames, onlineScenario$consideredAlgorithms) #virtual best solver
+  vwsPerf = getVirtualWorstSolverPerformance(onlineScenario$aslibScenario, instNames, onlineScenario$consideredAlgorithms) #virtual best solver #virtual worst solver
+  
+  #merging all into one data.table
+  vbsSwsMerged = merge(sbsPerf, swsPerf, by="instance_id", suffixes = c(".sbs", ".sws"))
+  vbSwsVbsMerged = merge(vbsSwsMerged, vbsPerf, by = "instance_id")
+  allExtraMerged = merge(vbSwsVbsMerged, vwsPerf, by = "instance_id")
+  
+  allMerged = merge(selectionOverviewWithPerf, allExtraMerged, by = "instance_id")
+  
+  colnames(allMerged) = c("instance_id", "selectedAlgorithm", "observedPerformance", "singleBest", "singleWorst", "virtualBest", "virtualWorst")
+  
+  return(allMerged)
 }
 
 
@@ -200,3 +230,24 @@ getNormalisedPerformance = function(observedPerf, singleBestPerf, vbsPerf){
   return(result)
   
 }
+
+
+
+#Adds an additional column to the selectionOverview, containing the performance of the selected algorithm
+extendSelectionOverviewWithPerformance = function(selectionOverview, aslibScenario){
+  selectionOverview = data.table(selectionOverview)
+  performancesList = c()
+  for(instance in selectionOverview$instanceId){
+    selectedAlg = selectionOverview[instanceId == instance,selectedAlgorithm]
+    performance = subset(aslibScenario$algo.runs, algorithm == selectedAlg & instance_id == instance)$performance
+    performancesList = c(performancesList, performance)
+  }
+  resultDataTable = cbind(selectionOverview, performancesList)
+  colnames(resultDataTable) = c("instance_id", "selectedAlgorithm", "performance")
+  return(resultDataTable)
+}
+  
+  
+  
+  
+
