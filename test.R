@@ -176,7 +176,7 @@ init = linucb_initialization(availableAlgorithms, initInstances, initFeatures, a
 onlineLearnerDataLinUcb$linUcbInfo$A = init$A
 onlineLearnerDataLinUcb$linUcbInfo$b = init$b
 onlineLearnerDataLinUcb$nrOfStepsWithoutRetraining = Inf #See remark at the end of selectAlgorithmWithLinUcbBatch
-instancesToHandle = setdiff(availableInstances, initInstances) 
+instancesToHandle = onlineScenarioSample$runtimeSet
 
 #Doing the simulation (in batches)
 
