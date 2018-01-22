@@ -17,7 +17,7 @@ linucb_disjoint <- function(arms, instances, features, alpha, scenario, getRewar
   #   nb: current number of instances treated.
   #
   # Returns:
-  #   A, b
+  #   A, b, p
   #   armChoices: list of arm choices.
   #   rewards: list of rewards.
   #   counter: number of instances treated after the call of this function.
@@ -106,7 +106,7 @@ linucb_disjoint_update <- function(A, b, arms, instances, features, alpha, scena
   # LinUCB with an initial A and b.
   #
   # Args:
-  #   Initial A and b
+  #   Initial A, b and p
   #		arms: list of arms (algorithms).
   #		instances: list of available instances.
   #   features: features associated with instances.

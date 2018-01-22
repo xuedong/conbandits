@@ -41,7 +41,7 @@ selectAlgorithmWithLinUcbBatch = function(instanceList, onlineLearnerData, alpha
   
   #3. Transforming updated LinUcb matrices/vectors back to onlineLearnerData
   onlineLearnerData$linUcbInfo$A = res$A
-  onlineLearnerData$UcbInfo$b = res$b
+  onlineLearnerData$linUcbInfo$b = res$b
   
   #4. Storing the selected algorithms in the onlineLearnerData object
   counter = 1
@@ -122,12 +122,12 @@ batchSize = 10
 doTimeDependentRegressionModelEvaluation = FALSE
 doTimeDependentVerification = FALSE
 nrOfOnlineInstancesToUseAsTrainingForOfflineMethod = 0
-alpha = 2
+alpha = 0
 mlrLearnerUcb = selectMlrLearner("LinUCB") #A bogus learner that doesn't do anything. Used because internal structure requires some notion of learner, but here the LinUCB algorithm itself contains the learning algorithm
 mlrLearnerNameGreedy= "regr.randomForest"
 performanceMeasure = "runtime" #PAR10 can be used too, to penalise time-outs by factor 10
 
-aslibScenarioName = "SAT11-HAND"
+aslibScenarioName = "QBF-2011"
 
 
 
