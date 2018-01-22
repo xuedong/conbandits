@@ -4,7 +4,7 @@ library(llama)
 
 source("utils_disjoint.R")
 
-linucb_disjoint <- function(arms, instances, features, alpha, scenario, getReward, nb){
+linucb_disjoint <- function(arms, instances, features, alpha0, scenario, getReward, nb){
   # Disjoint linear LinUCB model.
   #
   # Args:
@@ -43,7 +43,7 @@ linucb_disjoint <- function(arms, instances, features, alpha, scenario, getRewar
     for (a in 1:number_arms){
       theta[[a]] <- compute_theta_a(b[[a]], A[[a]])
       x_t_a <- matrix(as.numeric(c(features[t, 2:d], a)), d, 1)
-      p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], alpha)
+      p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], alpha0)
     }
     
     trial_arm <- which(p[t,] == max(p[t,]))
@@ -102,7 +102,7 @@ linucb_initialization <- function(arms, instances, features, scenario, getReward
   return(list("A"=A, "b"=b, "counter"=counter))
 }
 
-linucb_disjoint_update <- function(A, b, arms, instances, features, alpha, scenario, getReward, nb){
+linucb_disjoint_update <- function(A, b, arms, instances, features, alpha0, scenario, getReward, nb){
   # LinUCB with an initial A and b.
   #
   # Args:
@@ -135,7 +135,7 @@ linucb_disjoint_update <- function(A, b, arms, instances, features, alpha, scena
     for (a in 1:number_arms){
       theta[[a]] <- compute_theta_a(b[[a]], A[[a]])
       x_t_a <- matrix(as.numeric(c(features[t,2:d], a)), d, 1)
-      p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], alpha)
+      p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], alpha0)
     }
     
     trial_arm <- which(p[t,] == max(p[t,]))
@@ -152,6 +152,6 @@ linucb_disjoint_update <- function(A, b, arms, instances, features, alpha, scena
     A[[arm_choice[t]]] <- update_A_a(A[[arm_choice[t]]], x_t_a)
     b[[arm_choice[t]]] <- update_b_a(b[[arm_choice[t]]], reward[t], x_t_a)
   }
-  
+
   return(list("A"=A, "b"=b, "armChoices"=arm_choice, "rewards"=reward, "counter"=counter))
 }

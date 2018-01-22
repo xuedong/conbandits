@@ -20,8 +20,8 @@ compute_theta_a <- function(b_a, A_a){
   return(ginv(A_a) %*% b_a)
 }
 
-compute_p_t_a <- function(x_t_a, A_a, theta_a, alpha){
+compute_p_t_a <- function(x_t_a, A_a, theta_a, alpha0){
   p_t_a <- (t(theta_a) %*% x_t_a)
-	+ alpha * sqrt(t(x_t_a) %*% ginv(A_a) %*% x_t_a)
+	+ alpha0 * sqrt(t(x_t_a) %*% ginv(A_a) %*% x_t_a)
   return(p_t_a)
 }
