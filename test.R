@@ -127,11 +127,11 @@ mlrLearnerUcb = selectMlrLearner("LinUCB") #A bogus learner that doesn't do anyt
 mlrLearnerNameGreedy= "regr.randomForest"
 performanceMeasure = "runtime" #PAR10 can be used too, to penalise time-outs by factor 10
 
-aslibScenarioName = "QBF-2011"
+aslibScenarioName = "SAT11-HAND"
 
 
 
-set.seed(10)
+set.seed(1)
 onlineScenario = loadAslibScenarioIntoOnlineScenario(aslibScenarioName = aslibScenarioName, pInTraining=proportionTrainingInstances, 
                                                       pInRuntime = proportionRuntimeInstances, pInVerification = proportionVerificationInstances, 
                                                       performanceMeasure = performanceMeasure)
