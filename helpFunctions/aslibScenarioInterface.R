@@ -76,6 +76,7 @@ getAslibFilesMapLocation = function(){
   return("C:\\Users\\u0075355\\Documents\\Onderzoek\\ASLIB\\aslib_data-aslib-v4.0\\")
   #return("C:\\Users\\u0075355\\Documents\\Onderzoek\\ASLIB\\aslib_data-master_jan-2017\\aslib_data-master\\")
   #return("/home/hpc/pr74ze/di36gac/hans_test/aslib_data-master/")
+  #return("/home/xuedong/Documents/xuedong/phd/work/code/conbandits/aslib_data-master/")
   
 }
 

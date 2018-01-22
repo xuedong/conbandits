@@ -131,7 +131,7 @@ aslibScenarioName = "QBF-2011"
 
 
 
-set.seed(1)
+set.seed(10)
 onlineScenario = loadAslibScenarioIntoOnlineScenario(aslibScenarioName = aslibScenarioName, pInTraining=proportionTrainingInstances, 
                                                       pInRuntime = proportionRuntimeInstances, pInVerification = proportionVerificationInstances, 
                                                       performanceMeasure = performanceMeasure)

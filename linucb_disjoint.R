@@ -46,7 +46,14 @@ linucb_disjoint <- function(arms, instances, features, alpha, scenario, getRewar
       p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], alpha)
     }
     
-    arm_choice[t] <- which(p[t,] == max(p[t,]))
+    trial_arm <- which(p[t,] == max(p[t,]))
+    if (length(trial_arm) > 1){
+      trial_arm <- sample(trial_arm, 1)
+      arm_choice[t] <- trial_arm
+    }
+    else{
+      arm_choice[t] <- trial_arm
+    }
     reward[t] <- getReward(arms[arm_choice[t]], instance, scenario)$runtime
     
     x_t_a <- matrix(as.numeric(c(features[t, 2:d], arm_choice[t])), d, 1)
