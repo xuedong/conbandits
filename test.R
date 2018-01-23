@@ -149,6 +149,7 @@ desiredFeatures = onlineLearnerDataLinUcb$onlineScenario$consideredFeatures
 availableInstances = onlineLearnerDataLinUcb$onlineScenario$consideredInstances
 initInstances = availableInstances[1:100]
 nextInstances = availableInstances[101:500]
+selInstances = availableInstances[501:600]
 timeHorizon = length(availableInstances)
 aslibScenario = onlineLearnerDataLinUcb$onlineScenario$aslibScenario #contains all info about the benchmark
 
@@ -160,12 +161,16 @@ aslibScenario = onlineLearnerDataLinUcb$onlineScenario$aslibScenario #contains a
 features = getFeatureValuesForInstList(availableInstances, desiredFeatures, aslibScenario)
 initFeatures = features[1:100,]
 nextFeatures = features[101:500,]
+selFeatures = features[501:600,]
 
 res1 = linucb_disjoint(availableAlgorithms, initInstances, initFeatures, alpha0=alpha0, aslibScenario, getRuntimes, 0)
 
 
 res2 = linucb_disjoint_update(res1$A, res1$b, availableAlgorithms, nextInstances, nextFeatures, alpha0=alpha0, aslibScenario, getRuntimes, 100)
 init = linucb_initialization(availableAlgorithms, initInstances, initFeatures, aslibScenario, getRuntimes, 0)
+
+#Test on linucb_predict which makes selections based only on the underlying linear regression model of LinUCB
+sels = linucb_predict(res2$A, res2$b, availableAlgorithms, selInstances, selFeatures, aslibScenario, getRuntimes)
 
 #This is the code for the new test. It compares LinUCB called in batches to a simple greedy method
 

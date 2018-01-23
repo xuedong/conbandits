@@ -184,7 +184,7 @@ linucb_predict <- function(A, b, arms, instances, features, scenario, getReward)
     for (a in 1:number_arms){
       theta[[a]] <- compute_theta_a(b[[a]], A[[a]])
       x_t_a <- matrix(as.numeric(c(features[t,2:d], a)), d, 1)
-      p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], alpha0)
+      p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], 0)
     }
     
     trial_arm <- which(p[t,] == max(p[t,]))
