@@ -161,14 +161,11 @@ features = getFeatureValuesForInstList(availableInstances, desiredFeatures, asli
 initFeatures = features[1:100,]
 nextFeatures = features[101:500,]
 
-#print(c(alpha))
 res1 = linucb_disjoint(availableAlgorithms, initInstances, initFeatures, alpha0=alpha0, aslibScenario, getRuntimes, 0)
 
 
 res2 = linucb_disjoint_update(res1$A, res1$b, availableAlgorithms, nextInstances, nextFeatures, alpha0=alpha0, aslibScenario, getRuntimes, 100)
 init = linucb_initialization(availableAlgorithms, initInstances, initFeatures, aslibScenario, getRuntimes, 0)
-
-
 
 #This is the code for the new test. It compares LinUCB called in batches to a simple greedy method
 
@@ -188,7 +185,7 @@ onlineLearnerDataLinUcbBatchedRes = doLinUcbSimulation(instancesToHandle = insta
 onlineLearnerDataLinUcbNotBatchedRes = doLinUcbSimulation(instancesToHandle = instancesToHandle, onlineLearnerDataLinUcb = onlineLearnerDataLinUcb, 
                                                        alpha0 = alpha0, batchSize = Inf  )
 
-#Simulating the greedy method that uses underlying regression models (takes much longer to run. A few minutes)
+#Simulating 3: greedy method that uses underlying regression models (takes much longer to run. A few minutes)
 resGreedy = simulateGreedy(data = NULL,instance = onlineScenarioSample,NULL,nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
                            keepOldRegressionTasks = keepOldRegressionTasks, doTimeDependentVerification = doTimeDependentVerification, 
                            doTimeDependentRegressionModelEvaluation = doTimeDependentRegressionModelEvaluation,  batchSize = batchSize, 
@@ -207,3 +204,18 @@ print(paste("greedy perf: ", greedyAvgPerf))
 print(paste("batched linUcb perf: ", linUcbBatchedPerf))
 print(paste("not batched linUcb perf: ", linUcbNotBatchedPerf))
 
+
+
+#Debug successful verification:
+alpha0Res = doLinUcbSimulation(instancesToHandle = instancesToHandle, onlineLearnerDataLinUcb = onlineLearnerDataLinUcb, 
+                                                       alpha0 = 0, batchSize = batchSize  )
+alpha2Res = doLinUcbSimulation(instancesToHandle = instancesToHandle, onlineLearnerDataLinUcb = onlineLearnerDataLinUcb, 
+                               alpha0 = 2, batchSize = batchSize  )
+
+alpha100Res = doLinUcbSimulation(instancesToHandle = instancesToHandle, onlineLearnerDataLinUcb = onlineLearnerDataLinUcb, 
+                               alpha0 = 100, batchSize = batchSize  )
+
+
+print(mean(alpha0Res$performanceInfo$runtime$observedPerformance))
+print(mean(alpha2Res$performanceInfo$runtime$observedPerformance)) 
+print(mean(alpha100Res$performanceInfo$runtime$observedPerformance))
