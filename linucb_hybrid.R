@@ -40,7 +40,7 @@ linucb_hybrid <- function(arms, instances, features, shared, alpha, scenario, ge
   
   for (a in 1:number_arms){
     A[[a]] <- diag(d)
-    B[[a]] <-  matrix(0, d, k)
+    B[[a]] <- matrix(0, d, k)
     b[[a]] <- matrix(0, d, 1)
   }
   
@@ -56,7 +56,14 @@ linucb_hybrid <- function(arms, instances, features, shared, alpha, scenario, ge
       p[[t, a]] <- compute_p_t_a(z_t_a, x_t_a, s[[t, a]], beta, theta[[a]], alpha)
     }
     
-    arm_choice[t] <- which(p[t,] == max(p[t,]))
+    trial_arm <- which(p[t,] == max(p[t,]))
+    if (length(trial_arm) > 1){
+      trial_arm <- sample(trial_arm, 1)
+      arm_choice[t] <- trial_arm
+    }
+    else{
+      arm_choice[t] <- trial_arm
+    }
     reward[t] <- getRuntimes(arms[arm_choice[t]], instance, scenario)$runtime
     
     x_t_a <- matrix(as.numeric(c(feature[t, 2:d], arm_choice[t])), d, 1)
