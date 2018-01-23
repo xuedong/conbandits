@@ -155,3 +155,48 @@ linucb_disjoint_update <- function(A, b, arms, instances, features, alpha0, scen
 
   return(list("A"=A, "b"=b, "armChoices"=arm_choice, "rewards"=reward, "counter"=counter))
 }
+
+linucb_predict <- function(A, b, arms, instances, features, scenario, getReward){
+  # Prediction with only the underlying LinUCB regression.
+  #
+  # Args:
+  #   A, b
+  #		arms: list of arms (algorithms).
+  #		instances: list of available instances.
+  #   features: features associated with instances.
+  #   scenario: benchmark scenario.
+  #   getReward: reward function.
+  #
+  # Returns:
+  #   armChoices: list of arm choices (predictions).
+  #   rewards: list of rewards.
+  arm_choice <- c()
+  reward <- c()
+  number_arms <- length(arms)
+  horizon <- length(instances)
+  d <- length(features[1,])
+  
+  theta <- list()
+  p <- matrix(0, horizon, number_arms)
+  
+  for (t in 1:horizon){
+    instance <- instances[t]
+    for (a in 1:number_arms){
+      theta[[a]] <- compute_theta_a(b[[a]], A[[a]])
+      x_t_a <- matrix(as.numeric(c(features[t,2:d], a)), d, 1)
+      p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], alpha0)
+    }
+    
+    trial_arm <- which(p[t,] == max(p[t,]))
+    if (length(trial_arm) > 1){
+      trial_arm <- sample(trial_arm, 1)
+      arm_choice[t] <- trial_arm
+    }
+    else{
+      arm_choice[t] <- trial_arm
+    }
+    reward[t] <- getReward(arms[arm_choice[t]], instance, scenario)$runtime
+  }
+  
+  return(list("armChoices"=arm_choice, "rewards"=reward))
+}
