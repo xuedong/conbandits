@@ -11,9 +11,9 @@ selectMlrLearner = function(mlrLearnerName, predictionType = "response"){
   else if(mlrLearnerName == "regr.randomForest.jackKnife"){
     mlrLearner = getRandomForestLearnerJackknife(predictionType)
   }
-  else if(mlrLearnerName == "LinUCB"){
-    mlrLearner = "LinUCB"
-  }
+#  else if(mlrLearnerName == "LinUCB"){
+#    mlrLearner = "LinUCB"
+#  }
   else{
     stop(paste("Invalid mlrlearner method name ", mlrLearnerName, "specified; mlr learner cannot be loaded"))
   }

@@ -1,6 +1,6 @@
 #For batchtools. Changes standard values to given values.
 #data contains an onlineScenario object
-onlineScenarioSubsampleFunction = function(data, job, pInTraining, pInRuntime, pInVerification, performanceMeasure, mlrLearnerName){
+onlineScenarioSubsampleFunction = function(data, job, pInTraining, pInRuntime, pInVerification, performanceMeasure){
  
   onlineScenario = data
   oldOnlineScenario =  onlineScenario

@@ -12,117 +12,26 @@ sourceDir <- function(path, trace = TRUE, ...) {
 }
 
 
-#Function that handles one batch of the UCB algorithm
-# Args:
-#		instanceList: list of instances for which algorithms should be selected
-#   onlineLearnerData.  An onlineLearnerData with additional structure 'called'onlineLearnerData$linUcbInfo'
-#                       containing two sub-elements: A and b (the matrices required by the LinUCB algorithm)
-#   alpha:  the value of parameter alpha
-#
-# Returns:
-#  onlineLearnerData: the updated onlineLearnerData, containing the new A and b matrices
-#                     and containing the selections for the instances in instanceList
-
-selectAlgorithmWithLinUcbBatch = function(instanceList, onlineLearnerData, alpha0){
-  #1. Transforming data from onlineLearnerData format to linUcb algorithm format
-  A = onlineLearnerData$linUcbInfo$A
-  b = onlineLearnerData$linUcbInfo$b
-  availableAlgorithms = onlineLearnerData$onlineScenario$consideredAlgorithms
-  nextInstances = instanceList
-  nextFeatures = getFeatureValuesForInstList(instanceList, onlineLearnerData$onlineScenario$consideredFeatures,
-                                             onlineLearnerData$onlineScenario$aslibScenario)
-  aslibScenario = onlineLearnerData$onlineScenario$aslibScenario
-  nrOfOnInstHandled = length(onlineLearnerData$instanceTimeMap) #instanceTimeMap contains all instances that have been handled before during the simulation (in order)
-  
-  #2. Calling LinUcb function
-  res = linucb_disjoint_update(A = A, b = b, arms = availableAlgorithms, instances =  nextInstances,
-                               features = nextFeatures, alpha0 = alpha0, scenario = aslibScenario, getReward = getRuntimes, nb = nrOfOnInstHandled)
-  
-  #3. Transforming updated LinUcb matrices/vectors back to onlineLearnerData
-  onlineLearnerData$linUcbInfo$A = res$A
-  onlineLearnerData$linUcbInfo$b = res$b
-  
-  #4. Storing the selected algorithms in the onlineLearnerData object
-  counter = 1
-  selectedAlgorithmOverview = list() #a list with as keys instances and as values the selected algorithm for the instance
-  for(instance in instanceList){
-    selectedAlgorithm = availableAlgorithms[res$armChoices[counter]] #get algorithm selected for instance
-    selectedAlgorithmOverview[instance] = selectedAlgorithm
-    counter = counter+1
-  }
-  
-  #Internal stupidity due to legacy code that requires another format for the selectedAlgorithmOverview
-  newSelectionData = transformSelectedAlgorithmOverviewToSelectionDataOverview(selectedAlgorithmOverview)
-  
-  #This actually adds all new selected algorithms to the onlineLearnerData object. 
-  #Note:  this function is also called by the regression-based methods for which the simulation was originally written
-  #       Because of this, one of the steps it performs is retraining the regression models.
-  #       LinUCB does not use any separate regression models, so this step makes no sense
-  #       To avoid it is ever attempted, parameter 'amountOfStepsBeforeRetraining' is set to infinity
-  #       the result is that it is never attempted to retrain the (not existing) regression models
-  #       meaning that the code can execute successfully
-  onlineLearnerData = addBatchOfTimePointsToOnlineLearnerData(onlineLearnerData, instanceList, selectedAlgorithmOverview,newSelectionData )
-  
-  return(onlineLearnerData)
-  
-}
-
-
-#Function that simulates the LinUCB algorithm on all specified instances, splitting them into batches of size batchSize
-#		instancesToHandle: list of instances on whihc LinUCB should be run
-#   onlineLearnerDataLinUcb.  An onlineLearnerData with additional structure 'onlineLearnerData$linUcbInfo'
-#                       containing two sub-elements: A and b (the matrices required by the LinUCB algorithm)
-#   alpha:  the value of parameter alpha
-#   batchSize: size of batches in which the instances should be split
-#
-# Returns:
-#  onlineLearnerData: the updated onlineLearnerData, containing the final A and b matrices ($linUcbInfo),
-#                     information about the instances handled and the selections made ($onlineScenario$onlineInstanceOverview)
-#                     and information about the performance of the method  ($performanceInfo)
-
-doLinUcbSimulation = function(instancesToHandle, onlineLearnerDataLinUcb, alpha0, batchSize){
-  #Do LinUCB simulation
-  newBatch = c()
-  for(instanceId in instancesToHandle){
-    newBatch = c(unlist(newBatch), instanceId)
-    if(length(newBatch) >= batchSize){
-      onlineLearnerDataLinUcb = selectAlgorithmWithLinUcbBatch(newBatch, onlineLearnerDataLinUcb, alpha0=alpha0)  
-      #onlineLearnerDataLinUcb = handleTimepointPerformance(onlineLearnerDataLinUcb)
-      newBatch = list()
-    }
-  }
-  
-  #Handle remaining instances in case batch size doesn't divide the amount of instances exactly
-  if(length(newBatch)>0){
-    onlineLearnerDataLinUcb = selectAlgorithmWithLinUcbBatch(newBatch, onlineLearnerDataLinUcb,alpha0=alpha0)  
-    newBatch = list()
-  }
-  
-  #Calculates the performance of the simulation and adds it to the onlineLearnerData object ($performanceInfo)
-  onlineLearnerDataLinUcb = addRuntimePerformanceInfoToOnlineLearnerData(onlineLearnerDataLinUcb) #from postProcessingHelpers
-  
-}
-
 
 
 
 sourceDir("helpFunctions")
 source("utils_disjoint.R")
 source("linucb_disjoint.R")
-
+source("LinUcbIntegrationInSimulation.R")
 
 proportionTrainingInstances = 0.1
 proportionRuntimeInstances = 0.8
 proportionVerificationInstances = 0.1
-nrOfStepsWithoutRetraining = 10
 keepOldRegressionTasks = FALSE
 solvedInstancesOnly = FALSE
 batchSize = 10
-doTimeDependentRegressionModelEvaluation = FALSE
-doTimeDependentVerification = FALSE
+doTimeDependentVerification = TRUE
+doTimeDependentRegressionModelEvaluation = FALSE  #not used for linUcb, but for the other methods it is used
+nrOfStepsWithoutRetraining = 10 #not used for linUcb, but for the other methods it is used
 nrOfOnlineInstancesToUseAsTrainingForOfflineMethod = 0
-alpha0 = 0
-mlrLearnerUcb = selectMlrLearner("LinUCB") #A bogus learner that doesn't do anything. Used because internal structure requires some notion of learner, but here the LinUCB algorithm itself contains the learning algorithm
+alpha0 = 0 #parameter for LinUCB
+#mlrLearnerUcb = selectMlrLearner("LinUCB") #A bogus learner that doesn't do anything. Used because internal structure requires some notion of learner, but here the LinUCB algorithm itself contains the learning algorithm
 mlrLearnerNameGreedy= "regr.randomForest"
 performanceMeasure = "runtime" #PAR10 can be used too, to penalise time-outs by factor 10
 
@@ -130,20 +39,20 @@ aslibScenarioName = "QBF-2011"
 
 
 
+#This is the code from the original test, adapted a little so it still works
 set.seed(1)
 onlineScenario = loadAslibScenarioIntoOnlineScenario(aslibScenarioName = aslibScenarioName, pInTraining=proportionTrainingInstances, 
-                                                      pInRuntime = proportionRuntimeInstances, pInVerification = proportionVerificationInstances, 
-                                                      performanceMeasure = performanceMeasure)
+                                                     pInRuntime = proportionRuntimeInstances, pInVerification = proportionVerificationInstances, 
+                                                     performanceMeasure = performanceMeasure)
 
 onlineScenarioSample = onlineScenarioSubsampleFunction(data = onlineScenario, job =NULL, pInTraining = proportionTrainingInstances,
-                                                          pInRuntime = proportionRuntimeInstances, pInVerification = proportionVerificationInstances,
-                                                        performanceMeasure = performanceMeasure, mlrLearnerName = mlrLearnerNameGreedy)
+                                                       pInRuntime = proportionRuntimeInstances, pInVerification = proportionVerificationInstances,
+                                                       performanceMeasure = performanceMeasure)
 
-onlineLearnerDataLinUcb = initialiseEmptyOnlineLearnerData(onlineScenario = onlineScenarioSample, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining,
-                                                keepOldRegressionTasks = keepOldRegressionTasks, doTimeDependentVerification = doTimeDependentVerification,
-                                                doTimeDependentRegressionModelEvaluation = doTimeDependentRegressionModelEvaluation)
+onlineLearnerDataLinUcb = initialiseEmptyOnlineLearnerData(onlineScenario = onlineScenarioSample, nrOfStepsWithoutRetraining = Inf,
+                                                keepOldRegressionTasks = FALSE, doTimeDependentVerification = doTimeDependentVerification,
+                                                doTimeDependentRegressionModelEvaluation = FALSE)
 
-#This is the code from the original test, adapted a little so it still works
 availableAlgorithms = onlineLearnerDataLinUcb$onlineScenario$consideredAlgorithms
 desiredFeatures = onlineLearnerDataLinUcb$onlineScenario$consideredFeatures 
 availableInstances = onlineLearnerDataLinUcb$onlineScenario$consideredInstances
@@ -153,42 +62,45 @@ selInstances = availableInstances[501:600]
 timeHorizon = length(availableInstances)
 aslibScenario = onlineLearnerDataLinUcb$onlineScenario$aslibScenario #contains all info about the benchmark
 
-#instance = availableInstances[1]
-#featureValues = getFeatureValuesForInstList(instance, desiredFeatures, aslibScenario)
-#runtimeOfFirstAlgOnFirstInst = getRuntimes(availableAlgorithms[1], instance, aslibScenario) 
-#runtimeOfFirstAlgOnAllInst = getRuntimes(availableAlgorithms[1], availableInstances, aslibScenario)
-
 features = getFeatureValuesForInstList(availableInstances, desiredFeatures, aslibScenario)
 initFeatures = features[1:100,]
 nextFeatures = features[101:500,]
 selFeatures = features[501:600,]
 
-res1 = linucb_disjoint(availableAlgorithms, initInstances, initFeatures, alpha0=alpha0, aslibScenario, getRuntimes, 0)
+res1 = linucb_disjoint(availableAlgorithms, initInstances, initFeatures, alpha0=alpha0, aslibScenario, getPerformances, 0)
 
 
-res2 = linucb_disjoint_update(res1$A, res1$b, availableAlgorithms, nextInstances, nextFeatures, alpha0=alpha0, aslibScenario, getRuntimes, 100)
-init = linucb_initialization(availableAlgorithms, initInstances, initFeatures, aslibScenario, getRuntimes, 0)
+res2 = linucb_disjoint_update(res1$A, res1$b, availableAlgorithms, nextInstances, nextFeatures, alpha0=alpha0, aslibScenario, getPerformances, 100)
+init = linucb_initialization(availableAlgorithms, initInstances, initFeatures, aslibScenario, getPerformances, 0)
 
 #Test on linucb_predict which makes selections based only on the underlying linear regression model of LinUCB
-sels = linucb_predict(res2$A, res2$b, availableAlgorithms, selInstances, selFeatures, aslibScenario, getRuntimes)
+sels = linucb_predict(res2$A, res2$b, availableAlgorithms, selInstances, selFeatures, aslibScenario, getPerformances)
+
+
+
 
 #This is the code for the new test. It compares LinUCB called in batches to a simple greedy method
 
-#Updating the onlineLearnerData object so it contains the info required by LinUCB
-onlineLearnerDataLinUcb$linUcbInfo$A = init$A
-onlineLearnerDataLinUcb$linUcbInfo$b = init$b
-onlineLearnerDataLinUcb$nrOfStepsWithoutRetraining = Inf #See remark at the end of selectAlgorithmWithLinUcbBatch
-instancesToHandle = onlineScenarioSample$runtimeSet
+set.seed(1)
+onlineScenario = loadAslibScenarioIntoOnlineScenario(aslibScenarioName = aslibScenarioName, pInTraining=proportionTrainingInstances, 
+                                                     pInRuntime = proportionRuntimeInstances, pInVerification = proportionVerificationInstances, 
+                                                     performanceMeasure = performanceMeasure)
 
-#Doing the simulation (in batches)
+onlineScenarioSample = onlineScenarioSubsampleFunction(data = onlineScenario, job =NULL, pInTraining = proportionTrainingInstances,
+                                                       pInRuntime = proportionRuntimeInstances, pInVerification = proportionVerificationInstances,
+                                                       performanceMeasure = performanceMeasure)
+
 
 #Simulation 1: LinUCB with batches
-onlineLearnerDataLinUcbBatchedRes = doLinUcbSimulation(instancesToHandle = instancesToHandle, onlineLearnerDataLinUcb = onlineLearnerDataLinUcb, 
-                   alpha0 = alpha0, batchSize = batchSize  )
+onlineLearnerDataLinUcbBatchedRes = simulateLinUcb(data = NULL, instance = onlineScenarioSample, job =  NULL,
+                           doTimeDependentVerification = doTimeDependentVerification,
+                           batchSize = batchSize , alpha0 = alpha0)
+
 
 #Simulation 2: LinUCB without batches
-onlineLearnerDataLinUcbNotBatchedRes = doLinUcbSimulation(instancesToHandle = instancesToHandle, onlineLearnerDataLinUcb = onlineLearnerDataLinUcb, 
-                                                       alpha0 = alpha0, batchSize = Inf  )
+onlineLearnerDataLinUcbNotBatchedRes = simulateLinUcb(data = NULL, instance = onlineScenarioSample, job =  NULL,
+                                                      doTimeDependentVerification = doTimeDependentVerification,
+                                                      batchSize = Inf , alpha0 = alpha0)
 
 #Simulating 3: greedy method that uses underlying regression models (takes much longer to run. A few minutes)
 resGreedy = simulateGreedy(data = NULL,instance = onlineScenarioSample,NULL,nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
@@ -201,6 +113,8 @@ resGreedy = simulateGreedy(data = NULL,instance = onlineScenarioSample,NULL,nrOf
 greedyAvgPerf = mean(resGreedy$performanceInfo$runtime$observedPerformance)
 linUcbBatchedPerf = mean(onlineLearnerDataLinUcbBatchedRes$performanceInfo$runtime$observedPerformance)
 linUcbNotBatchedPerf = mean(onlineLearnerDataLinUcbNotBatchedRes$performanceInfo$runtime$observedPerformance)
+sbsPerf = mean(onlineLearnerDataLinUcbNotBatchedRes$performanceInfo$runtime$singleBest)
+vbsPerf = mean(onlineLearnerDataLinUcbNotBatchedRes$performanceInfo$runtime$virtualBest)
 
 print("Performances: (Higher is better)")
 
@@ -208,19 +122,9 @@ print(paste("alpha0: ", alpha0))
 print(paste("greedy perf: ", greedyAvgPerf))
 print(paste("batched linUcb perf: ", linUcbBatchedPerf))
 print(paste("not batched linUcb perf: ", linUcbNotBatchedPerf))
+print(paste("single best solver perf: ", sbsPerf))
+print(paste("virtual best solver perf: ", vbsPerf))
 
 
 
-#Debug successful verification:
-alpha0Res = doLinUcbSimulation(instancesToHandle = instancesToHandle, onlineLearnerDataLinUcb = onlineLearnerDataLinUcb, 
-                                                       alpha0 = 0, batchSize = batchSize  )
-alpha2Res = doLinUcbSimulation(instancesToHandle = instancesToHandle, onlineLearnerDataLinUcb = onlineLearnerDataLinUcb, 
-                               alpha0 = 2, batchSize = batchSize  )
 
-alpha100Res = doLinUcbSimulation(instancesToHandle = instancesToHandle, onlineLearnerDataLinUcb = onlineLearnerDataLinUcb, 
-                               alpha0 = 100, batchSize = batchSize  )
-
-
-print(mean(alpha0Res$performanceInfo$runtime$observedPerformance))
-print(mean(alpha2Res$performanceInfo$runtime$observedPerformance)) 
-print(mean(alpha100Res$performanceInfo$runtime$observedPerformance))

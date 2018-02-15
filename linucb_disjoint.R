@@ -54,7 +54,7 @@ linucb_disjoint <- function(arms, instances, features, alpha0, scenario, getRewa
     else{
       arm_choice[t] <- trial_arm
     }
-    reward[t] <- getReward(arms[arm_choice[t]], instance, scenario)$runtime
+    reward[t] <- getReward(arms[arm_choice[t]], instance, scenario)$performance
     
     x_t_a <- matrix(as.numeric(c(features[t, 2:d], arm_choice[t])), d, 1)
     A[[arm_choice[t]]] <- update_A_a(A[[arm_choice[t]]], x_t_a)
@@ -94,7 +94,7 @@ linucb_initialization <- function(arms, instances, features, scenario, getReward
     for (a in 1:number_arms){
       x_t_a <- matrix(as.numeric(c(features[t, 2:d], a)), d, 1)
       A[[a]] <- update_A_a(A[[a]], x_t_a)
-      reward <- getReward(arms[a], instance, scenario)$runtime
+      reward <- getReward(arms[a], instance, scenario)$performance
       b[[a]] <- update_b_a(b[[a]], reward, x_t_a)
     }
   }
@@ -146,7 +146,7 @@ linucb_disjoint_update <- function(A, b, arms, instances, features, alpha0, scen
     else{
       arm_choice[t] <- trial_arm
     }
-    reward[t] <- getReward(arms[arm_choice[t]], instance, scenario)$runtime
+    reward[t] <- getReward(arms[arm_choice[t]], instance, scenario)$performance
     
     x_t_a <- matrix(as.numeric(c(features[t,2:d], arm_choice[t])), d, 1)
     A[[arm_choice[t]]] <- update_A_a(A[[arm_choice[t]]], x_t_a)
@@ -195,7 +195,7 @@ linucb_predict <- function(A, b, arms, instances, features, scenario, getReward)
     else{
       arm_choice[t] <- trial_arm
     }
-    reward[t] <- getReward(arms[arm_choice[t]], instance, scenario)$runtime
+    reward[t] <- getReward(arms[arm_choice[t]], instance, scenario)$performance
   }
   
   return(list("armChoices"=arm_choice, "rewards"=reward))
