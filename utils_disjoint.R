@@ -21,7 +21,7 @@ compute_theta_a <- function(b_a, A_a){
 }
 
 compute_p_t_a <- function(x_t_a, A_a, theta_a, alpha0){
- # print("theta_a")
+#  print("theta_a")
 #  print(theta_a)
 #  print("x_t_a")
 #  print(x_t_a)
