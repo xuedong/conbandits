@@ -11,6 +11,9 @@ selectMlrLearner = function(mlrLearnerName, predictionType = "response"){
   else if(mlrLearnerName == "regr.randomForest.jackKnife"){
     mlrLearner = getRandomForestLearnerJackknife(predictionType)
   }
+  else if(mlrLearnerName == "regr.penalized.ridge"){
+    mlrLearner = getRidgeRegressionLearner(predictionType)
+  }
   else{
     stop(paste("Invalid mlrlearner method name ", mlrLearnerName, "specified; mlr learner cannot be loaded"))
   }
