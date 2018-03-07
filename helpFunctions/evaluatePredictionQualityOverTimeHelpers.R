@@ -145,8 +145,7 @@ addTimestepPerformanceToOnlineLearnerData = function(onlineLearnerData){
   
   if(length(onlineLearnerData$performanceInfo$timestep$availableTimesteps) > 0){
     lastTimestepWithPerformanceInfo = tail(onlineLearnerData$performanceInfo$timestep$availableTimesteps,1)
-  }
-  else{
+  }else{
     lastTimestepWithPerformanceInfo = -1 #no timestep performance info yet
   }
   #Only if the new timestep is actually different from the last one is it added. 
@@ -167,6 +166,43 @@ addTimestepPerformanceToOnlineLearnerData = function(onlineLearnerData){
   
   return(onlineLearnerData)
 }
+
+#Calculates the performance of the current selection models and adds it to the timestep performanceInfo
+#If a timestep for the same amount of instances handled already exists, it is overwritten
+#assumes that addTimestepPerformanceToOnlineLearnerData was run before this method
+addSelectionMappingTimestepPerformanceToOnlineLearnerData = function(onlineLearnerData, selectionFunction, selectionFunctionArg1 = NULL){
+  currentTimestep = length(onlineLearnerData$instanceTimeMap) #Amount of handled online instances
+  
+  if(length(onlineLearnerData$performanceInfo$selectionMappingTimestep$availableTimesteps) > 0){
+    lastTimestepWithPerformanceInfo = tail(onlineLearnerData$performanceInfo$selectionMappingTimestep$availableTimesteps,1)
+  }
+  else{
+    lastTimestepWithPerformanceInfo = -1 #no timestep performance info yet
+  }
+  #Only if the new timestep is actually different from the last one is it added. 
+  #(if not: the performance info will be overwritten)
+  if(currentTimestep != lastTimestepWithPerformanceInfo){
+    onlineLearnerData$performanceInfo$selectionMappingTimestep$availableTimesteps = c(onlineLearnerData$performanceInfo$selectionMappingTimestep$availableTimesteps, currentTimestep)
+  }
+  
+  verificationInstances = onlineLearnerData$onlineScenario$verificationSet
+  if(is.null(selectionFunctionArg1)){
+    batchSelections = selectionFunction(verificationInstances,onlineLearnerData)
+  }
+  else{
+    batchSelections = selectionFunction(verificationInstances,onlineLearnerData, selectionFunctionArg1)
+    
+  }
+  selectionOverview = transformBatchSelectionFunctionOutputToSelectionOverview(batchSelections)
+  perfOverview = createPerformanceOverviewForSelectionOverview(selectionOverview, onlineLearnerData$onlineScenario)
+
+  positionOfNewTimepoint = length(onlineLearnerData$performanceInfo$timestep$availableTimesteps)
+  onlineLearnerData$performanceInfo$selectionMappingTimestep$selectionModelQualityList[[positionOfNewTimepoint]] = perfOverview
+  
+  return(onlineLearnerData)
+}
+
+
 
 #Adds observed performance and some additional performance columns to the selectionOverview
 #returns the result as a datatable

@@ -1,0 +1,10 @@
+### [bt 2018-03-06 17:36:59]: This is batchtools v0.9.8
+### [bt 2018-03-06 17:36:59]: Starting calculation of 1 jobs
+### [bt 2018-03-06 17:36:59]: Setting working directory to 'C:/Users/u0075355/Documents/Onderzoek/conbandits'
+### [bt 2018-03-06 17:36:59]: Memory measurement disabled
+### [bt 2018-03-06 17:36:59]: Starting job [batchtools job.id=2]
+Generating problem instance for problem 'CPMP-2015' ...
+Applying algorithm 'random' on problem 'CPMP-2015' ...
+
+### [bt 2018-03-06 17:37:29]: Job terminated successfully [batchtools job.id=2]
+### [bt 2018-03-06 17:37:29]: Calculation finished!

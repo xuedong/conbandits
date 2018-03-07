@@ -11,9 +11,6 @@ selectMlrLearner = function(mlrLearnerName, predictionType = "response"){
   else if(mlrLearnerName == "regr.randomForest.jackKnife"){
     mlrLearner = getRandomForestLearnerJackknife(predictionType)
   }
-#  else if(mlrLearnerName == "LinUCB"){
-#    mlrLearner = "LinUCB"
-#  }
   else{
     stop(paste("Invalid mlrlearner method name ", mlrLearnerName, "specified; mlr learner cannot be loaded"))
   }
@@ -21,7 +18,8 @@ selectMlrLearner = function(mlrLearnerName, predictionType = "response"){
 }
 
 doStandardPreProcessing = function(onlineScenario, nrOfStepsWithoutRetraining, keepOldRegressionTasks, doTimeDependentVerification,
-                                   doTimeDependentRegressionModelEvaluation, mlrLearnerName, predictionType = "response",  minNrOfTrainingInst){
+                                   doTimeDependentRegressionModelEvaluation, mlrLearnerName, predictionType = "response",  minNrOfTrainingInst,
+                                   selectionFunction, selectionFunctionArg1= NULL){
 
   mlrLearner = selectMlrLearner(mlrLearnerName, predictionType)
   onlineLearnerData = initialiseOnlineLearnerData(onlineScenario = onlineScenario, mlrLearner = mlrLearner, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining,
@@ -33,7 +31,7 @@ doStandardPreProcessing = function(onlineScenario, nrOfStepsWithoutRetraining, k
   onlineLearnerData = generateMissingTrainingData(onlineLearnerData, minNrOfTrainingInst)
   
   #generate performanceoverview for first timepoint
-  onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+  onlineLearnerData = handleTimepointPerformance(onlineLearnerData,selectionFunction, selectionFunctionArg1)
   
   return(onlineLearnerData)
 }
@@ -41,14 +39,17 @@ doStandardPreProcessing = function(onlineScenario, nrOfStepsWithoutRetraining, k
 
 #Obtain performanceInfo
 #remove regression models and regression tasks
-doStandardPostProcessing = function(onlineLearnerData){
+#Also obtains verification performance based on the actual selection mapping used (specified with selectionFunction)
+#Up to one argument can be passed to selectionFunction (such as lambda fo UCB, or epsilon of epsilon greedy)
+#If none is specified, it will be ignored by addSelectionMappingVerificationPerformance
+doStandardPostProcessing = function(onlineLearnerData, selectionFunction, selectionFunctionArg1= NULL){
   #Retrain all models in order to obtain all online info 
   for(algorithmName in onlineLearnerData$onlineScenario$consideredAlgorithms){
     onlineLearnerData = retrainModel(onlineLearnerData, algorithmName)
   }
   
-  
-  onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+  onlineLearnerData = addSelectionMappingVerificationPerformance(onlineLearnerData, selectionFunction = selectionFunction, selectionFunctionArg1  = selectionFunctionArg1)
+  onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction = selectionFunction, selectionFunctionArg1  = selectionFunctionArg1)
   onlineLearnerData = addRuntimePerformanceInfoToOnlineLearnerData(onlineLearnerData) #from postProcessingHelpers
   onlineLearnerData = addVerificationPerformanceInfoToOnlineLearnerData(onlineLearnerData) #from postProcessingHelpers
   
@@ -58,6 +59,7 @@ doStandardPostProcessing = function(onlineLearnerData){
   if(! onlineLearnerData$keepOldRegressionTasks){
     onlineLearnerData = removeTasksFromOnlineLearnerData(onlineLearnerData)
   }
+  
   
   return(onlineLearnerData)
 }
@@ -73,7 +75,8 @@ simulateGreedy = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldR
   onlineLearnerData = doStandardPreProcessing(onlineScenario = onlineScenario, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
                                               keepOldRegressionTasks = keepOldRegressionTasks, doTimeDependentVerification = doTimeDependentVerification,
                                               doTimeDependentRegressionModelEvaluation = doTimeDependentRegressionModelEvaluation, 
-                                              mlrLearnerName = mlrLearnerName, minNrOfTrainingInst = minNrOfTrainingInst)
+                                              mlrLearnerName = mlrLearnerName, minNrOfTrainingInst = minNrOfTrainingInst,
+                                              selectionFunction = selectBestAlgorithmBatch)
   
 
   newBatch = list()
@@ -85,7 +88,7 @@ simulateGreedy = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldR
     newBatch = c(unlist(newBatch), instanceId)
     if(length(newBatch) >= batchSize){
       onlineLearnerData = handleInstanceBatchGreedy(newBatch, onlineLearnerData)  
-      onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+      onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction = selectBestAlgorithmBatch)
       newBatch = list()
     }
   }
@@ -96,8 +99,7 @@ simulateGreedy = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldR
     newBatch = list()
   }
   
-
-  onlineLearnerData = doStandardPostProcessing(onlineLearnerData)
+  onlineLearnerData = doStandardPostProcessing(onlineLearnerData, selectionFunction = selectBestAlgorithmBatch)
       
   return(onlineLearnerData)
 }
@@ -114,10 +116,10 @@ handleInstanceBatchGreedy =  function(newInstanceIdsList, onlineLearnerData){
 }
 
 #Iterates over all runtime instances in batches of specified size'
-#Selects the predicted best algorithm for each instance according to lcb
+#Selects the predicted best algorithm for each instance according to UCB
 #Returns an onlineLearnerdata object with all information about the online selection process
 #Note: an aslib scenario is assumed, meaning that for all instances in onlineInstanceList performance data is available in the aslibScenario contained in onlineLearnerData
-simulateUcb = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldRegressionTasks, doTimeDependentVerification, doTimeDependentRegressionModelEvaluation,
+simulateUcbProper = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldRegressionTasks, doTimeDependentVerification, doTimeDependentRegressionModelEvaluation,
                        batchSize, mlrLearnerName, lambda,minNrOfTrainingInst = 5){
   
   
@@ -126,7 +128,8 @@ simulateUcb = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldRegr
   onlineLearnerData = doStandardPreProcessing(onlineScenario = onlineScenario, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
                                               keepOldRegressionTasks = keepOldRegressionTasks, doTimeDependentVerification = doTimeDependentVerification,
                                               doTimeDependentRegressionModelEvaluation = doTimeDependentRegressionModelEvaluation, 
-                                              mlrLearnerName = mlrLearnerName, predictionType = "se", minNrOfTrainingInst = minNrOfTrainingInst)
+                                              mlrLearnerName = mlrLearnerName, predictionType = "se", minNrOfTrainingInst = minNrOfTrainingInst,
+                                              selectionFunction = selectAlgorithmsForBatchUcbOld, selectionFunctionArg1 = lambda)
   
   
   #All instance ids that are in the runtimeset that have not been used to generate additional training data can be used
@@ -136,8 +139,8 @@ simulateUcb = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldRegr
   for(instanceId in instancesToHandle){
     newBatch = c(unlist(newBatch), instanceId)
     if(length(newBatch) >= batchSize){
-      onlineLearnerData = handleInstanceBatchUcb(newBatch, onlineLearnerData,lambda)  
-      onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+      onlineLearnerData = handleInstanceBatchUcbProper(newBatch, onlineLearnerData,lambda)  
+      onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction = selectAlgorithmsForBatchUcbOld, selectionFunctionArg1  = lambda)
       newBatch = list()
     }
   }
@@ -145,11 +148,12 @@ simulateUcb = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldRegr
   
   #Handle remaining instances in case batch size doesn't divide the amount of instances exactly
   if(length(newBatch)>0){
-    onlineLearnerData = handleInstanceBatchUcb(newBatch, onlineLearnerData,lambda)  
+    onlineLearnerData = handleInstanceBatchUcbProper(newBatch, onlineLearnerData,lambda)  
     newBatch = list()
   }
   
-  onlineLearnerData = doStandardPostProcessing(onlineLearnerData)
+
+  onlineLearnerData = doStandardPostProcessing(onlineLearnerData, selectionFunction = selectAlgorithmsForBatchUcbOld, selectionFunctionArg1 = lambda)
   
   
   
@@ -160,13 +164,71 @@ simulateUcb = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldRegr
 
 
 #Handles the specified list of online instances for an artificial aslib scenario
-#selects the algorithms to solve them with according to the lcb method and updates the online data and regression models
-handleInstanceBatchUcb = function(newInstanceIdsList, onlineLearnerData,lambda){
-  selectedAlgorithmOverview = selectAlgorithmsForBatchUcb(newInstanceIdsList, onlineLearnerData,lambda)
+#selects the algorithms to solve them with according to the UCB method and updates the online data and regression models
+handleInstanceBatchUcbProper = function(newInstanceIdsList, onlineLearnerData,lambda){
+  selectedAlgorithmOverview = selectAlgorithmsForBatchUcbProper(newInstanceIdsList, onlineLearnerData,lambda)
   newSelectionData = transformSelectedAlgorithmOverviewToSelectionDataOverview(selectedAlgorithmOverview)
   onlineLearnerData = addBatchOfTimePointsToOnlineLearnerData(onlineLearnerData, newInstanceIdsList, selectedAlgorithmOverview,newSelectionData )
   return(onlineLearnerData)
 }
+
+#Iterates over all runtime instances in batches of specified size'
+#Selects the predicted best algorithm for each instance according to lcb
+#Returns an onlineLearnerdata object with all information about the online selection process
+#Note: an aslib scenario is assumed, meaning that for all instances in onlineInstanceList performance data is available in the aslibScenario contained in onlineLearnerData
+simulateUcbOld = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldRegressionTasks, doTimeDependentVerification, doTimeDependentRegressionModelEvaluation,
+                       batchSize, mlrLearnerName, lambda,minNrOfTrainingInst = 5){
+  
+  
+  onlineScenario = instance  
+  
+  onlineLearnerData = doStandardPreProcessing(onlineScenario = onlineScenario, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
+                                              keepOldRegressionTasks = keepOldRegressionTasks, doTimeDependentVerification = doTimeDependentVerification,
+                                              doTimeDependentRegressionModelEvaluation = doTimeDependentRegressionModelEvaluation, 
+                                              mlrLearnerName = mlrLearnerName, predictionType = "se", minNrOfTrainingInst = minNrOfTrainingInst,
+                                              selectionFunction = selectAlgorithmsForBatchUcbOld, selectionFunctionArg1 = lambda)
+  
+  
+  #All instance ids that are in the runtimeset that have not been used to generate additional training data can be used
+  instancesToHandle = setdiff(onlineLearnerData$onlineScenario$runtimeSet, names(onlineLearnerData$selectionOverview))
+  
+  newBatch = list()
+  for(instanceId in instancesToHandle){
+    newBatch = c(unlist(newBatch), instanceId)
+    if(length(newBatch) >= batchSize){
+      onlineLearnerData = handleInstanceBatchUcbOld(newBatch, onlineLearnerData,lambda)  
+      onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction = selectAlgorithmsForBatchUcbOld, selectionFunctionArg1  = lambda)
+      newBatch = list()
+    }
+  }
+  
+  
+  #Handle remaining instances in case batch size doesn't divide the amount of instances exactly
+  if(length(newBatch)>0){
+    onlineLearnerData = handleInstanceBatchUcbOld(newBatch, onlineLearnerData,lambda)  
+    newBatch = list()
+  }
+  
+  
+  onlineLearnerData = doStandardPostProcessing(onlineLearnerData, selectionFunction = selectAlgorithmsForBatchUcbOld, selectionFunctionArg1 = lambda)
+  
+  
+  
+  return(onlineLearnerData)
+}
+
+#Handles the specified list of online instances for an artificial aslib scenario
+#selects the algorithms to solve them with according to the UCB method and updates the online data and regression models
+#the old version of UCB is used, where the values are simply calculated as mean + lambda*sd
+handleInstanceBatchUcbOld = function(newInstanceIdsList, onlineLearnerData,lambda){
+  selectedAlgorithmOverview = selectAlgorithmsForBatchUcbOld(newInstanceIdsList, onlineLearnerData,lambda)
+  newSelectionData = transformSelectedAlgorithmOverviewToSelectionDataOverview(selectedAlgorithmOverview)
+  onlineLearnerData = addBatchOfTimePointsToOnlineLearnerData(onlineLearnerData, newInstanceIdsList, selectedAlgorithmOverview,newSelectionData )
+  return(onlineLearnerData)
+}
+
+
+
 
 #Always select the best algorithm, but use feedback of all algorithms (also those not selected)
 simulateGreedyFullInfo = function(data,instance,job,nrOfStepsWithoutRetraining, keepOldRegressionTasks, doTimeDependentVerification, doTimeDependentRegressionModelEvaluation,
@@ -177,7 +239,8 @@ simulateGreedyFullInfo = function(data,instance,job,nrOfStepsWithoutRetraining, 
   onlineLearnerData = doStandardPreProcessing(onlineScenario = onlineScenario, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
                                               keepOldRegressionTasks = keepOldRegressionTasks, doTimeDependentVerification = doTimeDependentVerification,
                                               doTimeDependentRegressionModelEvaluation = doTimeDependentRegressionModelEvaluation, 
-                                              mlrLearnerName = mlrLearnerName, minNrOfTrainingInst = minNrOfTrainingInst)
+                                              mlrLearnerName = mlrLearnerName, minNrOfTrainingInst = minNrOfTrainingInst,
+                                              selectionFunction = selectBestAlgorithmBatch)
   
   
   #All instance ids that are in the runtimeset that have not been used to generate additional training data can be used
@@ -188,7 +251,7 @@ simulateGreedyFullInfo = function(data,instance,job,nrOfStepsWithoutRetraining, 
     newBatch = c(unlist(newBatch), instanceId)
     if(length(newBatch) >= batchSize){
       onlineLearnerData = handleInstanceBatchGreedyFullInfo(newBatch, onlineLearnerData)  
-      onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+      onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction =  selectBestAlgorithmBatch)
       newBatch = list()
     }
   }
@@ -204,7 +267,7 @@ simulateGreedyFullInfo = function(data,instance,job,nrOfStepsWithoutRetraining, 
     onlineLearnerData = retrainModel(onlineLearnerData, algorithmName)
   }
   
-  onlineLearnerData = doStandardPostProcessing(onlineLearnerData)
+  onlineLearnerData = doStandardPostProcessing(onlineLearnerData, selectionFunction = selectBestAlgorithmBatch)
   
   
   
@@ -234,7 +297,8 @@ simulateEpsilonGreedy = function(data,instance,job,nrOfStepsWithoutRetraining, k
   onlineLearnerData = doStandardPreProcessing(onlineScenario = onlineScenario, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
                                               keepOldRegressionTasks = keepOldRegressionTasks, doTimeDependentVerification = doTimeDependentVerification,
                                               doTimeDependentRegressionModelEvaluation = doTimeDependentRegressionModelEvaluation, 
-                                              mlrLearnerName = mlrLearnerName, minNrOfTrainingInst = minNrOfTrainingInst)
+                                              mlrLearnerName = mlrLearnerName, minNrOfTrainingInst = minNrOfTrainingInst,
+                                              selectionFunction = selectAlgorithmsForBatchEpsilonGreedy, selectionFunctionArg1 = epsilon)
   
   
   #All instance ids that are in the runtimeset that have not been used to generate additional training data can be used
@@ -245,7 +309,7 @@ simulateEpsilonGreedy = function(data,instance,job,nrOfStepsWithoutRetraining, k
     newBatch = c(unlist(newBatch), instanceId)
     if(length(newBatch) >= batchSize){
       onlineLearnerData = handleInstanceBatchEpsilonGreedy(newBatch, onlineLearnerData,epsilon)  
-      onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+      onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction = selectAlgorithmsForBatchEpsilonGreedy, selectionFunctionArg1  = epsilon)
       newBatch = list()
     }
   }
@@ -257,7 +321,7 @@ simulateEpsilonGreedy = function(data,instance,job,nrOfStepsWithoutRetraining, k
     newBatch = list()
   }
   
-  onlineLearnerData = doStandardPostProcessing(onlineLearnerData)
+  onlineLearnerData = doStandardPostProcessing(onlineLearnerData, selectionFunction = selectAlgorithmsForBatchEpsilonGreedy, selectionFunctionArg1 = epsilon)
   
   
   return(onlineLearnerData)
@@ -289,7 +353,8 @@ simulateEpsilonFirst = function(data,instance,job,nrOfStepsWithoutRetraining, ke
   onlineLearnerData = doStandardPreProcessing(onlineScenario = onlineScenario, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
                                               keepOldRegressionTasks = keepOldRegressionTasks, doTimeDependentVerification = doTimeDependentVerification,
                                               doTimeDependentRegressionModelEvaluation = doTimeDependentRegressionModelEvaluation, 
-                                              mlrLearnerName = mlrLearnerName, minNrOfTrainingInst = minNrOfTrainingInst)
+                                              mlrLearnerName = mlrLearnerName, minNrOfTrainingInst = minNrOfTrainingInst,
+                                              selectionFunction = selectAlgorithmsForBatchEpsilonGreedy, selectionFunctionArg1 = 1 ) #selectionFunctionArg1 because initially full random selections are made
   
   
   #All instance ids that are in the runtimeset that have not been used to generate additional training data can be used
@@ -314,7 +379,7 @@ simulateEpsilonFirst = function(data,instance,job,nrOfStepsWithoutRetraining, ke
   #For the random instances, standard epsilon-greedy is run with epsilon value == 1 (pure random)
   #For the next instances, standard epsilon greedy is run with epsilon value == 0 (pure greedy)
   
-  #Phase 1: random selections
+  #Phase 1: random selections (epsilon =1)
   epsilon = 1
   
   newBatch = list()
@@ -323,7 +388,7 @@ simulateEpsilonFirst = function(data,instance,job,nrOfStepsWithoutRetraining, ke
     if(length(newBatch) >= batchSize){
       
       onlineLearnerData = handleInstanceBatchEpsilonGreedy(newBatch, onlineLearnerData,epsilon )  
-      onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+      onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction = selectAlgorithmsForBatchEpsilonGreedy, selectionFunctionArg1  = epsilon)
       newBatch = list()
     }
     
@@ -345,7 +410,7 @@ simulateEpsilonFirst = function(data,instance,job,nrOfStepsWithoutRetraining, ke
     if(length(newBatch) >= batchSize){
       
       onlineLearnerData = handleInstanceBatchEpsilonGreedy(newBatch, onlineLearnerData,epsilon )  
-      onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+      onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction = selectBestAlgorithmBatch)
       newBatch = list()
     }
     
@@ -358,8 +423,8 @@ simulateEpsilonFirst = function(data,instance,job,nrOfStepsWithoutRetraining, ke
   }
   
   
-  
-  onlineLearnerData = doStandardPostProcessing(onlineLearnerData)
+  #function at the end is greedy, as all exploration was done at the start
+  onlineLearnerData = doStandardPostProcessing(onlineLearnerData, selectionFunction = selectBestAlgorithmBatch)
   
   
   return(onlineLearnerData)
@@ -401,7 +466,7 @@ simulateOffline = function(data,instance,job,pOnlineAsTraining, keepOldRegressio
   #All instance ids that are in the runtimeset that have not been used to generate additional training data can be used
   instancesToHandle = setdiff(onlineLearnerData$onlineScenario$runtimeSet, trainingInst)
   
-  onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+  onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction = selectBestAlgorithmBatch)
   newBatch = list()
   
   
@@ -418,12 +483,12 @@ simulateOffline = function(data,instance,job,pOnlineAsTraining, keepOldRegressio
   
   
   
-  onlineLearnerData = handleTimepointPerformance(onlineLearnerData)
+  onlineLearnerData = handleTimepointPerformance(onlineLearnerData, selectionFunction = selectBestAlgorithmBatch)
   if(pOnlineAsTraining < 1){ #if not there simply is no online performance, as no online instances were handled
     onlineLearnerData = addRuntimePerformanceInfoToOnlineLearnerData(onlineLearnerData) #from onlineLearnerDataHelpers
   }
   onlineLearnerData = addVerificationPerformanceInfoToOnlineLearnerData(onlineLearnerData) #from onlineLearnerDataHelpers
-  
+  onlineLearnerData = addSelectionMappingVerificationPerformance(onlineLearnerData, selectionFunction = selectBestAlgorithmBatch)
   #No Learning never retrains its models
   
   
@@ -448,15 +513,23 @@ handleInstanceBatchGreedyNL = function(newInstanceIdsList, onlineLearnerData){
 
 
 
-handleTimepointPerformance = function(onlineLearnerData){
+#Handles all performances related to time
+#selectionFunction is the function with which selections are being made, used by addSelectionMappingTimestepPerformanceToOnlineLearnerData
+#selectionFunctionArg1 can contain a parameter, if addSelectionMappingTimestepPerformanceToOnlineLearnerData 
+#has a parameter. If it is not specified, it is ignored
+handleTimepointPerformance = function(onlineLearnerData, selectionFunction, selectionFunctionArg1 = NULL){
   #Order is important for consequent updating of the list of timepoints! See addTimestepRegressionModelQualityInformationToOnlineLearnerData
   if(onlineLearnerData$doTimeDependentVerification){
     onlineLearnerData = addTimestepPerformanceToOnlineLearnerData(onlineLearnerData)
+    onlineLearnerData = addSelectionMappingTimestepPerformanceToOnlineLearnerData(onlineLearnerData, selectionFunction = selectionFunction, selectionFunctionArg1 =selectionFunctionArg1 )
+    
   }
   if(onlineLearnerData$doTimeDependentRegressionModelEvaluation){
     
     onlineLearnerData = addTimestepRegressionModelQualityInformationToOnlineLearnerData(onlineLearnerData)
   }
+  
+  
   return(onlineLearnerData)
 }
 

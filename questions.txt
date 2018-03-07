@@ -1,0 +1,3 @@
+Question: does nb have relevance for linucb_initialisatio? 
+
+change to linucb_disjoint so it can handle arbitrary performances

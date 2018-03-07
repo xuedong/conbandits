@@ -8,8 +8,8 @@ selectAlgorithmWithHighestUcbValue = function(ucbValueList){
 
 
 #Makes algorithm selections for a batch of instances, specified in newInstanceIdsList
-selectAlgorithmsForBatchUcb = function(newInstanceIdsList, onlineLearnerData,lambda){
-  batchOfUcbValues = getBatchOfUcbValues(newInstanceIdsList, onlineLearnerData, lambda)
+selectAlgorithmsForBatchUcbProper = function(newInstanceIdsList, onlineLearnerData,lambda){
+  batchOfUcbValues = getBatchOfUcbValuesProper(newInstanceIdsList, onlineLearnerData, lambda)
   
   selectionOverview = list()
   
@@ -27,7 +27,7 @@ selectAlgorithmsForBatchUcb = function(newInstanceIdsList, onlineLearnerData,lam
 #Returns a list with elements identifiable by algorithmnames containing the ucb value of the algorithm for the specified list of instances
 #All algorithms in the consideredAlgorithms field of onlineLearnerData$onlineScenario are considered
 #WARNING: some code duplication with getBatchOfPredictedRuntimes in algSelectionSharedMethods.R
-getBatchOfUcbValues = function(newInstanceIdsList, onlineLearnerData,lambda){
+getBatchOfUcbValuesProper = function(newInstanceIdsList, onlineLearnerData,lambda){
   ucbValueOverview = list()
   newInstanceFeaturesOverviewWithInstId = getFeatureValuesForInstList(newInstanceIdsList, onlineLearnerData$onlineScenario$consideredFeatures, onlineLearnerData$onlineScenario$aslibScenario)
   newInstanceFeaturesOverview = subset(newInstanceFeaturesOverviewWithInstId, TRUE, select = names(newInstanceFeaturesOverviewWithInstId)[2:length(names(newInstanceFeaturesOverviewWithInstId))])
@@ -46,7 +46,7 @@ getBatchOfUcbValues = function(newInstanceIdsList, onlineLearnerData,lambda){
     names(meansOfBatch) = newInstanceFeaturesOverviewWithInstId[,"instance_id"]
     names(sesOfBatch) = newInstanceFeaturesOverviewWithInstId[,"instance_id"]
     
-    ucbValues = calcUcbValuesOfBatch(meansOfBatch, sesOfBatch, lambda, currentTimestep) 
+    ucbValues = calcUcbValuesOfBatchProper(meansOfBatch, sesOfBatch, lambda, currentTimestep) 
     
     ucbValueOverview = cbind(ucbValueOverview, ucbValues)
     #append column: col of lcbValues of this alg
@@ -60,12 +60,74 @@ getBatchOfUcbValues = function(newInstanceIdsList, onlineLearnerData,lambda){
 #Calculates the lcbValues of a batch based on a list of means and a list of standard deviations
 #meanList and seList must be identifiable by instance_id and must contain values for exactly the same instance_id's
 #The value = predicted average + lambda*predicted standard deviation
-calcUcbValuesOfBatch = function(meanList, seList, lambda, timestep){
+calcUcbValuesOfBatchProper = function(meanList, seList, lambda, timestep){
   ucbValueList = list()
   for(instanceId in names(meanList)){
     mean = meanList[[instanceId]]
     se = seList[[instanceId]]
     ucbValueList[[instanceId]] = mean+lambda*se*sqrt(log(timestep) )
+  }
+  return(ucbValueList)
+}
+
+
+#Makes algorithm selections for a batch of instances, specified in newInstanceIdsList
+selectAlgorithmsForBatchUcbOld = function(newInstanceIdsList, onlineLearnerData,lambda){
+  batchOfLcbValues = getBatchOfUcbValuesOld(newInstanceIdsList, onlineLearnerData, lambda)
+  
+  selectionOverview = list()
+  
+  #Find the algorithm with lowest lcb value for each instance
+  for(instanceId in newInstanceIdsList){
+    consideredValues = batchOfLcbValues[instanceId,]
+    bestAlgorithm = selectAlgorithmWithHighestUcbValue(consideredValues)
+    selectionOverview[[instanceId]] = bestAlgorithm
+  } 
+  return(selectionOverview)
+  
+  
+}
+
+#Returns a list with elements identifiable by algorithmnames containing the ucb value of the algorithm for the specified list of instances
+#All algorithms in the consideredAlgorithms field of onlineLearnerData$onlineScenario are considered
+#WARNING: some code duplication with getBatchOfPredictedRuntimes in algSelectionSharedMethods.R
+getBatchOfUcbValuesOld = function(newInstanceIdsList, onlineLearnerData,lambda){
+  ucbValueOverview = list()
+  newInstanceFeaturesOverviewWithInstId = getFeatureValuesForInstList(newInstanceIdsList, onlineLearnerData$onlineScenario$consideredFeatures, onlineLearnerData$onlineScenario$aslibScenario)
+  newInstanceFeaturesOverview = subset(newInstanceFeaturesOverviewWithInstId, TRUE, select = names(newInstanceFeaturesOverviewWithInstId)[2:length(names(newInstanceFeaturesOverviewWithInstId))])
+  
+  #Obtain a list with the most recent models from the onlineLearnerData
+  currentModelsList = getCurrentModelList(onlineLearnerData) 
+  
+  
+  for(algorithmName in onlineLearnerData$onlineScenario$consideredAlgorithms){
+    predictionBatch = predict(currentModelsList[[algorithmName]],newdata=  newInstanceFeaturesOverview)
+    
+    meansOfBatch = getPredictionResponse(predictionBatch)
+    sesOfBatch = getPredictionSE(predictionBatch)
+    names(meansOfBatch) = newInstanceFeaturesOverviewWithInstId[,"instance_id"]
+    names(sesOfBatch) = newInstanceFeaturesOverviewWithInstId[,"instance_id"]
+    
+    ucbValues = calcUcbValuesOfBatchOld(meansOfBatch, sesOfBatch, lambda)
+    
+    ucbValueOverview = cbind(ucbValueOverview, ucbValues)
+    #append column: col of lcbValues of this alg
+  }
+  colnames(ucbValueOverview) = onlineLearnerData$onlineScenario$consideredAlgorithms
+  return (ucbValueOverview)
+}
+
+
+
+#Calculates the lcbValues of a batch based on a list of means and a list of standard deviations
+#meanList and seList must be identifiable by instance_id and must contain values for exactly the same instance_id's
+#The value = predicted average - lambda*predicted standard deviation
+calcUcbValuesOfBatchOld = function(meanList, seList, lambda){
+  ucbValueList = list()
+  for(instanceId in names(meanList)){
+    mean = meanList[[instanceId]]
+    se = seList[[instanceId]]
+    ucbValueList[[instanceId]] = mean+lambda*se 
   }
   return(ucbValueList)
 }

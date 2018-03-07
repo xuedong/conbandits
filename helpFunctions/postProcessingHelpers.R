@@ -39,6 +39,40 @@ addVerificationPerformanceInfoToOnlineLearnerData = function(onlineLearnerData){
   return(onlineLearnerData)
 }
 
+#Adds the verification performance when the selection mapping itself (including exploration)
+#is considered. Contrast to addVerificationPerformance, where only the underlying
+#regression models are considered
+#the passed selectionFunction can have up to 1 argument, which can be specified with
+#selectionFunctionArg1. If none is specified, it is ignored.
+addSelectionMappingVerificationPerformance = function(onlineLearnerData, selectionFunction, selectionFunctionArg1 = NULL){
+  verificationInstances = onlineLearnerData$onlineScenario$verificationSet
+  if(is.null(selectionFunctionArg1)){
+    batchSelections = selectionFunction(verificationInstances,onlineLearnerData)
+  }
+  else{
+    batchSelections = selectionFunction(verificationInstances,onlineLearnerData, selectionFunctionArg1)
+    
+  }
+  selectionOverview = transformBatchSelectionFunctionOutputToSelectionOverview(batchSelections)
+  perfOverview = createPerformanceOverviewForSelectionOverview(selectionOverview, onlineLearnerData$onlineScenario)
+  onlineLearnerData$performanceInfo$selectionMappingVerification = perfOverview
+  return(onlineLearnerData)
+}
+
+#Transform the output of a function like handleInstanceBatchGreedy to the same
+#output as function getSelectionOverviewForInstanceSet (a data frame)
+transformBatchSelectionFunctionOutputToSelectionOverview = function(batchSelections){
+  selectionOverview =makeDataFrame(nrow = length(names(batchSelections) ), ncol = 2, 
+                                   col.types = c("character", "character") ,
+                                   col.names = c("instanceId", "selectedAlgorithm"))
+  selectionOverview[,1] = names(batchSelections) 
+  
+  for(instanceId in names(batchSelections)){
+    selectionOverview[[selectionOverview$instanceId == instanceId,2]] = batchSelections[[instanceId]]
+  }
+  return(selectionOverview)
+  
+}
 
 #Returns the selection overview of the specified models on the instance set
 #Does this by making the predictions using the models

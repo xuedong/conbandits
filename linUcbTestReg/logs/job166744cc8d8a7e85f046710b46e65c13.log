@@ -1,0 +1,10 @@
+### [bt 2018-03-06 18:05:19]: This is batchtools v0.9.8
+### [bt 2018-03-06 18:05:19]: Starting calculation of 1 jobs
+### [bt 2018-03-06 18:05:19]: Setting working directory to 'C:/Users/u0075355/Documents/Onderzoek/conbandits'
+### [bt 2018-03-06 18:05:19]: Memory measurement disabled
+### [bt 2018-03-06 18:05:19]: Starting job [batchtools job.id=6]
+Generating problem instance for problem 'QBF-2011' ...
+Applying algorithm 'linUcb' on problem 'QBF-2011' ...
+
+### [bt 2018-03-06 18:09:00]: Job terminated successfully [batchtools job.id=6]
+### [bt 2018-03-06 18:09:00]: Calculation finished!

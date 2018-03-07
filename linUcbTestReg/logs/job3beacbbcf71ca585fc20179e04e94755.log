@@ -1,0 +1,10 @@
+### [bt 2018-03-06 17:58:22]: This is batchtools v0.9.8
+### [bt 2018-03-06 17:58:22]: Starting calculation of 1 jobs
+### [bt 2018-03-06 17:58:22]: Setting working directory to 'C:/Users/u0075355/Documents/Onderzoek/conbandits'
+### [bt 2018-03-06 17:58:22]: Memory measurement disabled
+### [bt 2018-03-06 17:58:22]: Starting job [batchtools job.id=4]
+Generating problem instance for problem 'QBF-2011' ...
+Applying algorithm 'greedy' on problem 'QBF-2011' ...
+
+### [bt 2018-03-06 18:01:59]: Job terminated successfully [batchtools job.id=4]
+### [bt 2018-03-06 18:01:59]: Calculation finished!

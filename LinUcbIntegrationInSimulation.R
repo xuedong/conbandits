@@ -10,7 +10,7 @@
 #                     information about the instances handled and the selections made ($onlineScenario$onlineInstanceOverview)
 #                     and information about the performance of the method  ($performanceInfo)
 simulateLinUcb = function(data,instance,job,doTimeDependentVerification,
-                          batchSize, alpha0){
+                          batchSize, alpha0, mlrLearnerName = "noMlrLearner"){
 
   
   onlineScenario = instance  
