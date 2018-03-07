@@ -85,14 +85,14 @@ linucb_initialization <- function(arms, instances, features, scenario, getReward
   b <- list()
   
   for (a in 1:number_arms){
-    A[[a]] <- diag(d)
-    b[[a]] <- matrix(0, d, 1)
+    A[[a]] <- diag(d-1)
+    b[[a]] <- matrix(0, d-1, 1)
   }
   
   for (t in 1:horizon){
     instance <- instances[t]
     for (a in 1:number_arms){
-      x_t_a <- matrix(as.numeric(c(features[t, 2:d], a)), d, 1)
+      x_t_a <- matrix(as.numeric(c(features[t, 2:d])), d-1, 1)
       A[[a]] <- update_A_a(A[[a]], x_t_a)
       reward <- getReward(arms[a], instance, scenario)$performance
       b[[a]] <- update_b_a(b[[a]], reward, x_t_a)
@@ -183,7 +183,7 @@ linucb_predict <- function(A, b, arms, instances, features, scenario, getReward)
     instance <- instances[t]
     for (a in 1:number_arms){
       theta[[a]] <- compute_theta_a(b[[a]], A[[a]])
-      x_t_a <- matrix(as.numeric(c(features[t,2:d], a)), d, 1)
+      x_t_a <- matrix(as.numeric(c(features[t,2:d])), d-1, 1)
       p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], 0)
     }
     

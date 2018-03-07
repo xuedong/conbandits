@@ -29,8 +29,8 @@ doTimeDependentVerification = TRUE
 linRegrName = "regr.lm"
 regForestName = "regr.randomForest"
 
-performanceMeasure = "PAR10"
-aslibScenarioName = "CPMP-2015"
+performanceMeasure = "runtime"
+aslibScenarioName = "QBF-2011"
 
 alpha0 = 0 #parameter for LinUCB
 
