@@ -2,7 +2,7 @@ library(dplyr)
 library(mlr)
 library(llama)
 
-linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getReward){
+linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getReward, nb){
   # LinUCB with an D and p.
   #
   # Args:
@@ -26,6 +26,7 @@ linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getRewa
   #   reward: reward (performance) obtained in this step.
   number_arms <- length(arms)
   d <- length(feature)
+  counter <- nb + 1
   
   predicted <- matrix(0, 1, number_arms)
   
@@ -45,5 +46,5 @@ linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getRewa
   }
   reward <- getReward(arms[arm_choice], instance, scenario)$performance
   
-  return(list("reward"=reward, "armChoice"=arm_choice))
+  return(list("reward"=reward, "armChoice"=arm_choice, "counter"=counter))
 }
