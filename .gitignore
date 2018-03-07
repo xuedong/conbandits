@@ -38,3 +38,6 @@ vignettes/*.pdf
 
 # Temporary files created by vim
 *.swp
+
+# Misc
+notes
