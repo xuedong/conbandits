@@ -1,6 +1,7 @@
 library(aslib)
 library(mlr)
 library(llama)
+configureMlr(on.par.without.desc = "warn")
 
 sourceDir <- function(path, trace = TRUE, ...) {
   for (nm in list.files(path, pattern = "[.][RrSsQq]$")) {
@@ -74,6 +75,28 @@ onlineLearnerDataRidge = doStandardPreProcessing(onlineScenario = onlineScenario
                                             doTimeDependentRegressionModelEvaluation = doTimeDependentRegressionModelEvaluation, 
                                             mlrLearnerName = mlrLearnerName, minNrOfTrainingInst = 5,
                                             selectionFunction = selectBestAlgorithmBatch)
+
+
+mod = onlineLearnerDataRidge$regressionModelList$X2clsQ
+newInstanceIdsList = onlineLearnerDataRidge$onlineScenario$verificationSet[1:5]
+newInstanceFeaturesOverviewWithInstId = getFeatureValuesForInstList(newInstanceIdsList, onlineLearnerData$onlineScenario$consideredFeatures, onlineLearnerData$onlineScenario$aslibScenario)
+newInstanceFeaturesOverview = subset(newInstanceFeaturesOverviewWithInstId, TRUE, select = names(newInstanceFeaturesOverviewWithInstId)[2:length(names(newInstanceFeaturesOverviewWithInstId))])
+predictionBatch = predict(currentModelsList[[algorithmName]],newdata=  newInstanceFeaturesOverview)
+
+
+
+
+A = onlineLearnerDataLinUcb$linUcbInfo$A
+b = onlineLearnerDataLinUcb$linUcbInfo$b
+
+alg1A = A[[1]]
+alg1b = b[[1]]
+
+
+theta[[a]] <- compute_theta_a(alg1b, alg1A)
+x_t_a <- matrix(as.numeric(newInstFeaturesOverview))
+p[[t, a]] <- compute_p_t_a(x_t_a, A[[a]], theta[[a]], 0)
+
 
 
 mlrLearnerName = "regr.lm"
