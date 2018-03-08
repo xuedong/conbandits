@@ -2,7 +2,7 @@ library(dplyr)
 library(mlr)
 library(llama)
 
-linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getReward, nb){
+linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getReward){
   # LinUCB with an D and p.
   #
   # Args:
@@ -26,14 +26,14 @@ linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getRewa
   #   reward: reward (performance) obtained in this step.
   number_arms <- length(arms)
   d <- length(feature)
-  counter <- nb + 1
+  # counter <- nb + 1
   
   predicted <- matrix(0, 1, number_arms)
   
   for (a in 1:number_arms){
     x_t_a <- matrix(as.numeric(c(feature[2:d])), d-1, 1)
     A_a <- t(D[[a]]) %*% D[[a]] + diag(d-1)
-    predicted[[1, a]] <- p[a] + alpha0 * alpha0 * sqrt(t(x_t_a) %*% ginv(A_a) %*% x_t_a)
+    predicted[[1, a]] <- p[a] + alpha0 * sqrt(t(x_t_a) %*% ginv(A_a) %*% x_t_a)
   }
     
   trial_arm <- which(predicted[1,] == max(predicted[1,]))
@@ -46,5 +46,5 @@ linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getRewa
   }
   reward <- getReward(arms[arm_choice], instance, scenario)$performance
   
-  return(list("reward"=reward, "armChoice"=arm_choice, "counter"=counter))
+  return(list("reward"=reward, "armChoice"=arm_choice))
 }
