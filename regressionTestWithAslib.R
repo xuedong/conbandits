@@ -37,10 +37,10 @@ beta1 = Ainv %*% b
 beta2 = solve(Z, t(X) %*% Y)
 
 # compute ridge regression with penalized
-pen = penalized(smallPerfMatrix[,2], penalized=smallFeatureMatrix[2:ncol(smallFeatureMatrix)], positive=FALSE, lambda1=0, lambda2=myLambda)
+pen = penalized(smallPerfMatrix[,2], penalized=smallFeatureMatrix[2:ncol(smallFeatureMatrix)], standardize=FALSE, positive=FALSE, model=c('linear'), lambda1=0, lambda2=myLambda)
 
 # compute ridge regression with glmnet
-gl <- glmnet(as.matrix(smallFeatureMatrix[2:ncol(smallFeatureMatrix)]), as.matrix(smallPerfMatrix[,2]), standardize=FALSE, family="gaussian", alpha=0, lambda=c(myLambda))
+gl <- glmnet(as.matrix(smallFeatureMatrix[2:ncol(smallFeatureMatrix)]), as.matrix(smallPerfMatrix[,2]), standardize=FALSE, family='gaussian', thresh=1e-10, alpha=0, nlambda=1)
 
 
 print("ginv:")
