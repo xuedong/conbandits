@@ -1,4 +1,5 @@
 library(MASS)
+library(corpcor)
 
 ##########################################
 # Helper functions for matrices updating #
