@@ -1,0 +1,13 @@
+Sanity check:
+
+- To run just the linear regression to see if LinUCB fits for the problem.
+- Features normalization?
+
+
+Perspectives:
+
+- Changing distributions (adversial ordering of arriving contexts).
+- Check some other underlying regression models?
+- Check the regret curve.
+- Cold start more interesting?
+
