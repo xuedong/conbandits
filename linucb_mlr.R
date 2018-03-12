@@ -1,6 +1,8 @@
 library(dplyr)
 library(mlr)
 library(llama)
+library(MASS) #needed for ginv
+
 
 linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getReward){
   # LinUCB with an D and p.
@@ -15,7 +17,7 @@ linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getRewa
   #     given the new feature.
   #		arms: list of arms (algorithms).
   #		instance: new arriving instance.
-  #   feature: feature associated with this instance.
+  #   feature: feature values associated with this instance. The first column should be the instance name.
   #		alpha0: constant.
   #   scenario: benchmark scenario.
   #   getReward: reward function.
