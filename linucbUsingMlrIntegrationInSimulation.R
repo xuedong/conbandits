@@ -85,6 +85,7 @@ library(llama)
 library(aslib)
 library(dplyr)
 library(MASS)
+library(penalized)
 
 #configureMlr(on.par.without.desc = "warn")
 
@@ -101,9 +102,9 @@ source("utils_disjoint.R")
 #source("linucb_disjoint.R")
 source("linucb_mlr.R")
 
-aslibScenarioName = "CPMP-2015"
-pInTraining = 0
-pInRuntime = 0.9
+aslibScenarioName = "BNSL-2016"
+pInTraining = 0.0
+pInRuntime = 0.8
 pInVerification = 0.1
 performanceMeasure = "PAR10"
 
@@ -111,12 +112,13 @@ performanceMeasure = "PAR10"
 nrOfStepsWithoutRetraining = 9
 keepOldRegressionTasks = FALSE
 doTimeDependentVerification = TRUE
-doTimeDependentRegressionModelVerification = TRUE
+doTimeDependentRegressionModelEvaluation = TRUE
 batchSize = 10
-mlrLearnerName = "regr.lm"
-minNrOfTrainingInst = 0
+mlrLearnerName = "regr.penalized.ridge"
+minNrOfTrainingInst = 5
 
 onlineScenario = loadAslibScenarioIntoOnlineScenario(aslibScenarioName, pInTraining, pInRuntime, pInVerification, "PAR10")
+instance = onlineScenario
 
 set.seed(10)
 greedyResLin = simulateGreedy(NULL, onlineScenario, NULL, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
@@ -136,4 +138,5 @@ linUcbWithExploringTest = simulateMlrLinUcb(NULL, onlineScenario, NULL, nrOfStep
 mean(greedyResLin$performanceInfo$runtime$observedPerformance)
 mean(linUcbTest$performanceInfo$runtime$observedPerformance)
 mean(linUcbWithExploringTest$performanceInfo$runtime$observedPerformance)
+
 

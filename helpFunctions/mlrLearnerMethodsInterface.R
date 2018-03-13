@@ -40,8 +40,9 @@ getRangerLearner = function(predictionType){
 }
 
 
-getRidgeRegressionLearner = function(predictionType){
-  learnerLR = makeImputeWrapper(learner = makeLearner("regr.penalized.ridge",predict.type=predictionType, lambda1=0, lambda2=1, model = "linear"), 
+getRidgeRegressionLearner = function(predictionType, lambda2 = 1, standardize=TRUE, positive=FALSE, model = c("linear")){
+  learnerLR = makeImputeWrapper(learner = makeLearner("regr.penalized.ridge",predict.type=predictionType, lambda2=lambda2, model = model,
+                                                      standardize=standardize, positive=positive), 
                                 classes = list(numeric = imputeMean(), integer = imputeMean(), logical = imputeMode(), 
                                                factor = imputeConstant("NA"), character = imputeConstant("NA")))
 }
