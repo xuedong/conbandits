@@ -14,6 +14,9 @@ selectMlrLearner = function(mlrLearnerName, predictionType = "response"){
   else if(mlrLearnerName == "regr.penalized.ridge"){
     mlrLearner = getRidgeRegressionLearner(predictionType)
   }
+  else if(mlrLearnerName == "regr.glmnet"){
+      mlrLearner = getGlmNetLearner(predictionType)
+  }
   
   else{
     stop(paste("Invalid mlrlearner method name ", mlrLearnerName, "specified; mlr learner cannot be loaded"))

@@ -85,7 +85,7 @@ library(llama)
 library(aslib)
 library(dplyr)
 library(MASS)
-library(penalized)
+
 
 #configureMlr(on.par.without.desc = "warn")
 
@@ -102,9 +102,9 @@ source("utils_disjoint.R")
 #source("linucb_disjoint.R")
 source("linucb_mlr.R")
 
-aslibScenarioName = "BNSL-2016"
-pInTraining = 0.0
-pInRuntime = 0.8
+aslibScenarioName = "QBF-2011"
+pInTraining = 0.8
+pInRuntime = 0.1
 pInVerification = 0.1
 performanceMeasure = "PAR10"
 
@@ -114,11 +114,15 @@ keepOldRegressionTasks = FALSE
 doTimeDependentVerification = TRUE
 doTimeDependentRegressionModelEvaluation = TRUE
 batchSize = 10
-mlrLearnerName = "regr.penalized.ridge"
+mlrLearnerName = "regr.glmnet"
 minNrOfTrainingInst = 5
+
+
 
 onlineScenario = loadAslibScenarioIntoOnlineScenario(aslibScenarioName, pInTraining, pInRuntime, pInVerification, "PAR10")
 instance = onlineScenario
+
+
 
 set.seed(10)
 greedyResLin = simulateGreedy(NULL, onlineScenario, NULL, nrOfStepsWithoutRetraining = nrOfStepsWithoutRetraining, 
@@ -135,8 +139,11 @@ linUcbWithExploringTest = simulateMlrLinUcb(NULL, onlineScenario, NULL, nrOfStep
                                doTimeDependentRegressionModelEvaluation, mlrLearnerName = mlrLearnerName,
                                batchSize = batchSize, alpha0=100)
 
-mean(greedyResLin$performanceInfo$runtime$observedPerformance)
-mean(linUcbTest$performanceInfo$runtime$observedPerformance)
-mean(linUcbWithExploringTest$performanceInfo$runtime$observedPerformance)
+mean(greedyResLin$performanceInfo$runtime$virtualBest)
+mean(greedyResLin$performanceInfo$runtime$singleBest)
+
+mean(greedyResLin$performanceInfo$verification$observedPerformance)
+mean(linUcbTest$performanceInfo$verification$observedPerformance)
+mean(linUcbWithExploringTest$performanceInfo$verification$observedPerformance)
 
 
