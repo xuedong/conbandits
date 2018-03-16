@@ -41,20 +41,20 @@ instance = onlineScenario
 
 
 #Copy of the getMlrNetLearner function to enable faster parameter tuning. Original is in helpFunctions/mlrLearnerMethodsInterface
-getGlmNetLearner = function(predictionType, family = c("gaussian"), thresh=1e-10,alpha=0, standardize=FALSE, intercept=FALSE ){
-  learnerLR = makeImputeWrapper(learner = makeLearner("regr.glmnet",predict.type=predictionType, thresh=thresh, alpha=alpha, standardize=FALSE, intercept=FALSE), 
-                                classes = list(numeric = imputeMean(), integer = imputeMean(), logical = imputeMode(), 
+getGlmNetLearner = function(predictionType, alpha=0, standardize=TRUE, intercept=TRUE){
+  learnerLR = makeImputeWrapper(learner = makeLearner("regr.glmnet",predict.type=predictionType, alpha=alpha, standardize=standardize, intercept=intercept),
+                                classes = list(numeric = imputeMean(), integer = imputeMean(), logical = imputeMode(),
                                                factor = imputeConstant("NA"), character = imputeConstant("NA")))
-  
+
 }
 
 #uncomment below to create a glmnet with standard parameters => good performance
-#getGlmNetLearner = function(predictionType){
-#  learnerLR = makeImputeWrapper(learner = makeLearner("regr.glmnet",predict.type=predictionType), 
-#                                classes = list(numeric = imputeMean(), integer = imputeMean(), logical = imputeMode(), 
+# getGlmNetLearner = function(predictionType){
+#  learnerLR = makeImputeWrapper(learner = makeLearner("regr.glmnet",predict.type=predictionType),
+#                                classes = list(numeric = imputeMean(), integer = imputeMean(), logical = imputeMode(),
 #                                               factor = imputeConstant("NA"), character = imputeConstant("NA")))
-#  
-#}
+# 
+# }
 
 
 
