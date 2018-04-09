@@ -36,6 +36,16 @@ addPar10PerformanceToAslibScenario= function(aslibScenario){
   return(aslibScenario)
 }
 
+#Adds a column to the algo.runs data.frame of an aslib scenario that shows the values for runtime performance
+#Assumes there exists a column called' PAR10' containing the PAR10 values
+addRuntimePerformanceToAslibScenario= function(aslibScenario){
+  aslibScenario$algo.runs$runtime = aslibScenario$algo.runs$PAR10
+  timeoutIndices = aslibScenario$algo.runs$runstatus != 'ok'
+  timeoutPerformance = aslibScenario$desc$algorithm_cutoff_time
+  aslibScenario$algo.runs$runtime[timeoutIndices] = timeoutPerformance
+  return(aslibScenario)
+}
+
 
 
 #Creates the 'performance' column in aslibScenario$algo.runs and fills it with the desired performanceMeasure
@@ -53,15 +63,52 @@ addPerformanceColumnToAslibScenario = function(aslibScenario, performanceMeasure
     }
     timeoutLimit = aslibScenario$desc$algorithm_cutoff_time
     aslibScenario$algo.runs$performance = 10*timeoutLimit-aslibScenario$algo.runs$PAR10
+    aslibScenario$desc$algorithm_max_perf = 10*timeoutLimit
+    aslibScenario$desc$algorithm_min_perf = 0
+    return(aslibScenario)
+  }
+  if(performanceMeasure == "runtime"){
+    if(! ("PAR10" %in% colNames | "runtime" %in% colNames)){
+      stop("No runtime performance column can be created for the aslibScenario; column called 'runtime' or 'PAR10' is required")
+    }
+    if(! "runtime" %in% colNames){
+      aslibScenario = addRuntimePerformanceToAslibScenario(aslibScenario)
+    }
+    timeoutLimit = aslibScenario$desc$algorithm_cutoff_time
+    aslibScenario$algo.runs$performance = timeoutLimit-aslibScenario$algo.runs$runtime
+    aslibScenario$desc$algorithm_max_perf = timeoutLimit
+    aslibScenario$desc$algorithm_min_perf = 0
+    return(aslibScenario)
+    
+  }
+  
+  #For CSP-Minizind-Obj-2016
+  #Best performance: value 0
+  #Worst performance: value 1
+  if(performanceMeasure == "obj"){
+    aslibScenario$algo.runs$performance = 1-aslibScenario$algo.runs$obj
+    aslibScenario$desc$algorithm_max_perf = 1
+    aslibScenario$desc$algorithm_min_perf = 0
     return(aslibScenario)
   }
   
+  
+  
+  
   #other cases: simply paste required column to performanceMeasure
   #Note: assumes it's a maximisation performance. If not, must be transformed
+  #Note: assumes the min and max performance are both observed
   if (! (performanceMeasure %in% colNames)){
     stop(paste("Desired performance", performanceMeasure, "not found in the columns of aslibScenario$algo.runs"))
   }
+  else{
+    warning(paste("Performance measure", performanceMeasure, " has no code written for it in function addPerformanceColumnToAslibScenario in aslibHelpers.R. The values of the performance 
+                  were taken directly. So it is assumed that the performance is a maximisation performance, and that the minimal and maximal performance value are both present in the algorithm
+                  runs."))
+  }
   aslibScenario$algo.runs$performance = aslibScenario$algo.runs[,performanceMeasure]
+  aslibScenario$desc$algorithm_max_perf = max(aslibScenario$algo.runs$performance)
+  aslibScenario$desc$algorithm_min_perf = min(aslibScenario$algo.runs$performance)
   return(aslibScenario)
   
   

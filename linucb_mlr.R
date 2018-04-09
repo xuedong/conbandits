@@ -26,6 +26,10 @@ linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getRewa
   # Returns:
   #   armChoice: arm choosen in this step.
   #   reward: reward (performance) obtained in this step.
+  maxPerf = scenario$desc$algorithm_max_perf
+  minPerf = scenario$desc$algorithm_min_perf
+  linUcbExtraMultiplier = (maxPerf-minPerf)
+  
   number_arms <- length(arms)
   d <- length(feature)
   # counter <- nb + 1
@@ -35,7 +39,7 @@ linucb_step <- function(D, p, arms, instance, feature, alpha0, scenario, getRewa
   for (a in 1:number_arms){
     x_t_a <- matrix(as.numeric(c(feature[2:d])), d-1, 1)
     A_a <- t(D[[a]]) %*% D[[a]] + diag(d-1)
-    predicted[[1, a]] <- p[a] + alpha0 * sqrt(t(x_t_a) %*% ginv(A_a) %*% x_t_a)
+    predicted[[1, a]] <- p[a] + alpha0 * sqrt(t(x_t_a) %*% ginv(A_a) %*% x_t_a) * linUcbExtraMultiplier
   }
     
   trial_arm <- which(predicted[1,] == max(predicted[1,]))

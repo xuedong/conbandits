@@ -1,80 +1,110 @@
-createRdsFilesWithAllInstTime = function(reg, scenarios, timeFolder){
+createRdsFilesWithAllInstTime= function(reg, scenarios, timeFolder){
   for(scenario in scenarios){
-
+    print(paste("createRdsFilesWithAllInstTime for", scenario))
     exp = findExperiments(reg = reg, ids = findDone(), prob.name = scenario)$job.id
-   
-    dtTime = createIndividualInstPerformanceOverviewOverTimeThesis(reg, exp)
-   # dtAvg = createAveragePerTimestepPerformanceOverviewOverTimeThesis(dtTime)
-    
-    timeFile = paste(timeFolder, '/', scenario, "-allInst.rds", sep = "")
-    
-    saveRDS(dtTime, file = timeFile)
+    if(length(exp)> 0){
+      dtTime = createIndividualInstPerformanceOverviewOverTimeThesis(reg, exp)
+      # dtAvg = createAveragePerTimestepPerformanceOverviewOverTimeThesis(dtTime)
+      
+      timeFile = paste(timeFolder, '/', scenario, "-allInst.rds", sep = "")
+      
+      saveRDS(dtTime, file = timeFile)
+      
+      
+    }
+  
   }
 }
 
 createRdsFilesWithAllInstTimeAvg = function(reg, scenarios, timeFolder){
   for(scenario in scenarios){
+    print(paste("createRdsFilesWithAllInstTimeAvg for", scenario))
     exp = findExperiments(reg = reg, ids = findDone(), prob.name = scenario)$job.id
     
-    inputTimeFile = paste(timeFolder, '/', scenario, "-allInst.rds", sep = "")
-    
-    dtTime = readRDS(inputTimeFile)
-    dtAvg = createAveragePerTimestepPerformanceOverviewOverTimeThesis(dtTime)
-    
-    timeFile = paste(timeFolder, '/', scenario, "-allInst.rds", sep = "")
-    
-    saveRDS(dtTime, file = timeFile)
+    if(length(exp)> 0){
+      inputTimeFile = paste(timeFolder, '/', scenario, "-allInst.rds", sep = "")
+      
+      dtTime = readRDS(inputTimeFile)
+      dtAvg = createAveragePerTimestepPerformanceOverviewOverTimeThesis(dtTime)
+      
+      timeFile = paste(timeFolder, '/', scenario, ".rds", sep = "")
+      
+      saveRDS(dtAvg, file = timeFile)
+      
+    }
   }
 }
 
 
-createRdsFilesWithAllInst = function(reg, scenarios, onlineFolder, verFolder, smVerFolder){
+createRdsFilesWithAllInst = function(reg, scenarios, onlineFolder = NULL, verFolder = NULL, smVerFolder = NULL){
   for(scenario in scenarios){
-
+    print(paste("createRdsFilesWithAllInst for", scenario))
+    
     exp = findExperiments(reg = reg, ids = findDone(), prob.name = scenario)$job.id
     
-    dtOn = createIndividualInstPerformanceOverviewThesis(reg, exp, performanceName = "runtime")
-    dtVer = createIndividualInstPerformanceOverviewThesis(reg, exp, performanceName = "verification")
-    #dtSmVer = createIndividualInstPerformanceOverviewThesis(reg, exp, performanceName = "selectionMappingVerification")
-    
+    if(length(exp)>0){
+      
+      if(!is.null(onlineFolder)){
+        dtOn = createIndividualInstPerformanceOverviewThesis(reg, exp, performanceName = "runtime")
+        onFile = paste(onlineFolder, '/', scenario, "-allInst.rds", sep = "")
+        saveRDS(dtOn, file = onFile)
+      }
+      
+      if(!is.null(verFolder)){
+        dtVer = createIndividualInstPerformanceOverviewThesis(reg, exp, performanceName = "verification")
+        verFile = paste(verFolder, '/', scenario, "-allInst.rds", sep = "")
+        saveRDS(dtVer, file = verFile)
+      }
+      
+      if(!is.null(smVerFolder)){
+        dtSmVer = createIndividualInstPerformanceOverviewThesis(reg, exp, performanceName = "selectionMappingVerification")
+        smVerFile = paste(smVerFolder, '/', scenario, "-allInst.rds", sep = "")
+        saveRDS(dtSmVer, file = smVerFile)
+      }
+      
     # dtAvg = createAveragePerTimestepPerformanceOverviewOverTimeThesis(dtTime)
-    
-    onFile = paste(onlineFolder, '/', scenario, "-allInst.rds", sep = "")
-    verFile = paste(verFolder, '/', scenario, "-allInst.rds", sep = "")
-    smVerFile = paste(smVerFolder, '/', scenario, "-allInst.rds", sep = "")
+    }
     
     
-    saveRDS(dtOn, file = onFile)
-    saveRDS(dtVer, file = verFile)
-    #saveRDS(dtSmVer, file = smVerFile)
+    
   }
 }
 
 
-createRdsFilesWithAllInstAvg = function(reg, scenarios, onlineFolder, verFolder, smVerFolder){
+createRdsFilesWithAllInstAvg = function(reg, scenarios, onlineFolder = NULL, verFolder = NULL, smVerFolder = NULL){
   for(scenario in scenarios){
     exp = findExperiments(reg = reg, ids = findDone(), prob.name = scenario)$job.id
     
-    inputOnFile = paste(onlineFolder, '/', scenario, "-allInst.rds", sep = "")
-    inputVerFile = paste(verFolder, '/', scenario, "-allInst.rds", sep = "")
-    inputSmVerFile = paste(smVerFolder, '/', scenario, "-allInst.rds", sep = "")
-    
-    dtOnInput = readRDS(inputOnFile)
-    dtVerInput = readRDS(inputVerFile)
-    dtSmVerInput = readRDS(inputSmVerFile)
-    
-    dtOnAvg = createAveragePerformanceOverviewThesis(dtOnInput)
-    dtVerAvg = createAveragePerformanceOverviewThesis(dtVerInput)
-    dtSmVerAvg = createAveragePerformanceOverviewThesis(dtSmVerInput)
-    
-    
-    onFile = paste(onlineFolder, '/', scenario, ".RDS", sep = "")
-    verFile = paste(verFolder, '/', scenario, ".RDS", sep = "")
-    smVerFile = paste(smVerFolder, '/', scenario, ".RDS", sep = "")
-    
-    saveRDS(dtOnAvg, file = onFile)
-    saveRDS(dtVerAvg, file = verFile)
-    saveRDS(dtSmVerAvg, file = smVerFile)
+    if(length(exp) > 0){
+      if(!is.null(onlineFolder)){
+        inputOnFile = paste(onlineFolder, '/', scenario, "-allInst.rds", sep = "")
+        dtOnInput = readRDS(inputOnFile)
+        dtOnAvg = createAveragePerformanceOverviewThesis(dtOnInput)
+        onFile = paste(onlineFolder, '/', scenario, ".RDS", sep = "")
+        saveRDS(dtOnAvg, file = onFile)
+      }
+      
+      
+      if(!is.null(verFolder)){
+        inputVerFile = paste(verFolder, '/', scenario, "-allInst.rds", sep = "")
+        dtVerInput = readRDS(inputVerFile)
+        dtVerAvg = createAveragePerformanceOverviewThesis(dtVerInput)
+        verFile = paste(verFolder, '/', scenario, ".RDS", sep = "")
+        saveRDS(dtVerAvg, file = verFile)
+        
+      }
+      
+      if(!is.null(smVerFolder)){
+        inputSmVerFile = paste(smVerFolder, '/', scenario, "-allInst.rds", sep = "")
+        dtSmVerInput = readRDS(inputSmVerFile)
+        dtSmVerAvg = createAveragePerformanceOverviewThesis(dtSmVerInput)
+        smVerFile = paste(smVerFolder, '/', scenario, ".RDS", sep = "")
+        saveRDS(dtSmVerAvg, file = smVerFile)
+      }
+      
+      
+      
+    }
   }
 }
 
@@ -311,10 +341,10 @@ createAveragePerTimestepPerformanceOverviewOverTimeThesis = function(individualI
     stop("Observed performance better than virtual best performance on average. This is impossible for correct data")
   }
   if(nrow(resDt[avgSwsPerf > avgSbsPerf]) > 0){
-    warning("single worst solver better than single best solver on average. This is unlikely for correct data, 
+    warning(paste("single worst solver better than single best solver on average. This is unlikely for correct data, 
             but can occur if the virtual best solver (taken over all considered instances) performs particularly
             poorly on the verification instances. Check when this occurs by running resDt[avgSwsPerf > avgSbsPerf], 
-            with resDt the data table returned by this function")
+            with resDt the data table returned by this function", unique(resDt$problemId)[[1]]))
   }
   
   return(resDt)
@@ -347,6 +377,8 @@ createIndividualInstPerformanceOverviewOverTimeThesis = function(reg, experiment
   
   VERIFICATION_CONSTANT = TRUE
   for (jobId in experimentNrs) {
+   # print(paste("createIndividualInstPerformanceOverviewOverTimeThesis", jobId, object.size(sbsPerfs)))
+    gc()
     jobInfo = getJobTable(reg = reg, ids = jobId)
     result = loadResult(reg = reg, jobId)
     performanceOverview = getElement(result$performanceInfo, performanceName)
@@ -932,14 +964,13 @@ createAveragePerformanceOverviewThesis = function(individualInstDataTable){
     stop("Observed performance better than virtual best performance on average. This is impossible for correct data")
   }
   if(nrow(resDt[avgSwsPerf > avgSbsPerf]) > 0){
-    warning("single worst solver better than single best solver on average. This is unlikely for correct data, 
+    warning(paste("single worst solver better than single best solver on average. This is unlikely for correct data, 
             but can occur if the virtual best solver (taken over all considered instances) performs particularly
             poorly on the instances considered (online or verification). Check when this occurs by running resDt[avgSwsPerf > avgSbsPerf], 
-            with resDt the data table returned by this function")
+            with resDt the data table returned by this function", unique(resDt$problemId)[[1]]))
   }
   
   return(resDt)
 }
-
 
 

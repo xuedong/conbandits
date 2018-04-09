@@ -40,16 +40,19 @@ getRangerLearner = function(predictionType){
 }
 
 
-getRidgeRegressionLearner = function(predictionType, lambda2 = 1, standardize=TRUE, positive=FALSE, model = c("linear")){
-  learnerLR = makeImputeWrapper(learner = makeLearner("regr.penalized.ridge",predict.type=predictionType, lambda2=lambda2, model = model,
-                                                      standardize=standardize, positive=positive), 
+getRidgeRegressionLearner = function(predictionType, standardize=TRUE){
+  #model = c("linear")
+  learnerLR = makeImputeWrapper(learner = makeLearner("regr.penalized.ridge",predict.type=predictionType, #model = model,
+                                                      standardize=standardize), 
                                 classes = list(numeric = imputeMean(), integer = imputeMean(), logical = imputeMode(), 
                                                factor = imputeConstant("NA"), character = imputeConstant("NA")))
 }
 
-getGlmNetLearner = function(predictionType, lambda = 0, family = c("gaussian"), thresh=1e-10,alpha=0, nlambda=1, standardize=FALSE, intercept=FALSE ){
-  learnerLR = makeImputeWrapper(learner = makeLearner("regr.glmnet",predict.type=predictionType, thresh=thresh, alpha=alpha, nlambda=nlambda,
-                                                      lambda=lambda, standardize=FALSE, intercept=FALSE), 
+getGlmNetLearner = function(predictionType ){
+  standardize=TRUE
+  intercept=TRUE
+  alphaValue=0
+  learnerLR = makeImputeWrapper(learner = makeLearner("regr.glmnet",predict.type=predictionType,alpha=alphaValue, standardize=standardize, intercept = intercept), 
                                 classes = list(numeric = imputeMean(), integer = imputeMean(), logical = imputeMode(), 
                                                factor = imputeConstant("NA"), character = imputeConstant("NA")))
   
