@@ -3,6 +3,7 @@ library("mlr")
 
 aslibScenarioName = "QBF-2011"
 aslibFolderLoc = "C:\\Users\\u0075355\\Documents\\Onderzoek\\ASLIB\\aslib_data-aslib-v4.0\\"
+#aslibFolderLoc = "/home/xuedong/Documents/xuedong/phd/work/code/conbandits/aslib_data-master/"
 scenario =  parseASScenario(paste(aslibFolderLoc,aslibScenarioName, sep=""))
 
 
